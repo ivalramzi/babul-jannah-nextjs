@@ -31,5 +31,21 @@ export function verifyToken(t = '') {
 }
 export const isAuthed = (req) => verifyToken(String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''))
 
-export const KINDS = ['artikel', 'acara', 'jadwal']
+export const KINDS = ['artikel', 'acara', 'jadwal', 'postingan']
+export const MAX_FOTO = { artikel: 4, acara: 4, postingan: 10 }
+// Tempat gambar tampil (kunci pengaturan crop). Harus sama dengan PLACES di src/data.js
+export const PLACES = ['beranda', 'artikel', 'feed', 'cover', 'galeri', 'popup']
+export const RATIO_RE = /^([1-9]|1[0-9]|2[0-1])\/([1-9]|1[0-9]|2[0-1])$/
+const num = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v * 100) / 100)) : d }
+// fokus = array sejajar dengan foto: [{ [tempat]: {x,y,z} }]
+export function cleanFokus(f) {
+  const o = {}
+  if (f && typeof f === 'object') for (const p of PLACES) if (f[p] && typeof f[p] === 'object') o[p] = { x: num(f[p].x, 0, 100, 50), y: num(f[p].y, 0, 100, 50), z: num(f[p].z, 1, 3, 1) }
+  return o
+}
+export function cleanCrop(c) {
+  const o = {}
+  if (c && typeof c === 'object') for (const p of PLACES) if (RATIO_RE.test(String(c[p] || ''))) o[p] = String(c[p])
+  return o
+}
 export const SAFE_ID = /^[a-zA-Z0-9_-]{1,120}$/

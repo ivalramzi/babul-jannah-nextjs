@@ -9,6 +9,7 @@ export async function seedIfEmpty(force = false) {
   if (!force && (await cmd('EXISTS', 'bj:seeded'))) return
   const cmds = []
   for (const k of KINDS) {
+    if (!seed[k]) continue // postingan tidak ikut data awal (tidak ikut terhapus saat Reset)
     if (force) cmds.push(['DEL', hkey(k)])
     for (const it of seed[k]) cmds.push(['HSET', hkey(k), it.id, JSON.stringify(it)])
   }
@@ -18,10 +19,10 @@ export async function seedIfEmpty(force = false) {
 
 export async function readAll() {
   await seedIfEmpty()
-  const r = await pipe([...KINDS.map((k) => ['HGETALL', hkey(k)]), ['HGETALL', 'bj:likecount']])
+  const r = await pipe([...KINDS.map((k) => ['HGETALL', hkey(k)]), ['HGETALL', 'bj:likecount'], ['GET', 'bj:crop']])
   const out = {}
   KINDS.forEach((k, i) => { out[k] = Object.values(toObj(r[i])).map(parse).filter(Boolean) })
-  const lc = toObj(r[3]); out.likes = {}
+  const lc = toObj(r[KINDS.length]); out.likes = {}; out.crop = parse(r[KINDS.length + 1]) || {}
   for (const [k, v] of Object.entries(lc)) out.likes[k] = Number(v) || 0
   return out
 }

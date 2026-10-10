@@ -2,10 +2,11 @@ import crypto from 'node:crypto'
 import { hasRedis, cmd, pipe } from './_redis.js'
 import { seedIfEmpty } from './_content.js'
 import { broadcast, pushReady } from './_push.js'
-import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID } from './_util.js'
+import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID, MAX_FOTO, cleanFokus, cleanCrop } from './_util.js'
 
 const fotoId = (url = '') => (/^\/api\/foto\?id=([a-f0-9]{16,40})$/.exec(url) || [])[1]
 const clean = (it) => { const o = { ...it }; delete o._exists; delete o.suka; delete o.komentar; return o }
+const cap = (s, n) => String(s ?? '').slice(0, n)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method' })
@@ -39,7 +40,12 @@ export default async function handler(req, res) {
       const item = clean(b.item), key = 'bj:' + b.kind
       const old = await cmd('HGET', key, item.id)
       const isNew = !old
-      if (Array.isArray(item.foto)) item.foto = item.foto.filter((u) => fotoId(u)).slice(0, 4)
+      if (Array.isArray(item.foto)) {
+        // foto & pengaturan crop-nya (fokus) harus tetap sejajar
+        const pairs = item.foto.map((u, i) => [u, item.fokus?.[i]]).filter(([u]) => fotoId(u)).slice(0, MAX_FOTO[b.kind] || 4)
+        item.foto = pairs.map((p) => p[0]); item.fokus = pairs.map((p) => cleanFokus(p[1]))
+      } else delete item.fokus
+      if (b.kind === 'postingan') { item.caption = cap(item.caption, 2200); item.lokasi = cap(item.lokasi, 120); if (!item.foto?.length && !item.caption.trim()) return send(res, 400, { error: 'empty_post' }, H) }
       const cmds = [['HSET', key, item.id, JSON.stringify(item)]]
       // hapus foto lama yang sudah tidak dipakai
       if (old) { const keep = new Set((item.foto || []).map(fotoId)); try { (JSON.parse(old).foto || []).map(fotoId).filter((x) => x && !keep.has(x)).forEach((x) => cmds.push(['DEL', 'bj:foto:' + x])) } catch {} }
@@ -65,12 +71,20 @@ export default async function handler(req, res) {
 
     if (b.action === 'import') {
       const d = b.data || {}
-      if (!KINDS.every((k) => Array.isArray(d[k]))) return send(res, 400, { error: 'bad_data' }, H)
+      // cadangan lama belum punya "postingan": bagian itu dilewati (data postingan yang ada tidak dihapus)
+      if (!KINDS.every((k) => Array.isArray(d[k]) || (k === 'postingan' && d[k] === undefined))) return send(res, 400, { error: 'bad_data' }, H)
       const cmds = []
-      for (const k of KINDS) { cmds.push(['DEL', 'bj:' + k]); for (const it of d[k]) if (SAFE_ID.test(String(it.id))) cmds.push(['HSET', 'bj:' + k, it.id, JSON.stringify(clean(it))]) }
+      if (d.crop) cmds.push(['SET', 'bj:crop', JSON.stringify(cleanCrop(d.crop))])
+      for (const k of KINDS) { if (!Array.isArray(d[k])) continue; cmds.push(['DEL', 'bj:' + k]); for (const it of d[k]) if (SAFE_ID.test(String(it.id))) cmds.push(['HSET', 'bj:' + k, it.id, JSON.stringify(clean(it))]) }
       cmds.push(['SET', 'bj:seeded', '1'])
       await pipe(cmds)
       return send(res, 200, { ok: true }, H)
+    }
+
+    if (b.action === 'crop') {
+      const crop = cleanCrop(b.crop)
+      await cmd('SET', 'bj:crop', JSON.stringify(crop))
+      return send(res, 200, { ok: true, crop }, H)
     }
 
     if (b.action === 'reset') { await seedIfEmpty(true); return send(res, 200, { ok: true }, H) }

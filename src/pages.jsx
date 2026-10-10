@@ -4,7 +4,7 @@ import { Link, useParams } from './nav.jsx'
 import { site, profil } from './data.js'
 import { useContent, useInstagram, loadInstagram } from './store.js'
 import { Icon, Head, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
-import { Post, FeedPost, IgPost, JadwalCard, EventCard, Logo, Gallery } from './components.jsx'
+import { Post, FeedPost, GramPost, IgPost, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
 
 export function Jadwal() {
   const { jadwal, ready } = useContent()
@@ -50,10 +50,10 @@ export function AcaraDetail() {
   return (
     <article className="read">
       <Link to="/acara" className="link back"><Icon n="arrow_back" size={18} />Semua acara</Link>
-      <div className={fotos(e).length ? 'cover photo' : `cover t-${done ? 'ink' : 'green'}`} style={fotos(e).length ? { backgroundImage: `linear-gradient(rgba(10,20,14,.15),rgba(10,20,14,.82)),url("${fotos(e)[0]}")` } : undefined}>
+      <Cover item={e} tone={done ? 'ink' : 'green'}>
         <span className="chip inv">{done ? 'Selesai' : `Akan datang · ${daysLeft(e.tanggal)}`}</span>
         <h1>{e.judul}</h1>
-      </div>
+      </Cover>
       <ul className="facts">
         <li><Icon n="event" size={22} /><span>{fmt(e.tanggal, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span></li>
         <li><Icon n="schedule" size={22} /><span>{e.jam} WIB</span></li>
@@ -67,7 +67,7 @@ export function AcaraDetail() {
           {paras(e.laporan).map((p, i) => <p className="body" key={i}>{p}</p>)}
         </>
       )}
-      <Gallery list={fotos(e).slice(1)} title={done ? 'Dokumentasi acara' : 'Foto'} />
+      <Gallery item={e} title={done ? 'Dokumentasi acara' : 'Foto'} />
       {!done && <div className="actions"><a className="btn" href={wa} target="_blank" rel="noreferrer">Tanya via WhatsApp</a></div>}
     </article>
   )
@@ -87,7 +87,7 @@ export function Artikel() {
         <button className={tab === 'semua' ? 'chip on' : 'chip'} onClick={() => setTab('semua')}>Semua</button>
         <button className={tab === 'simpan' ? 'chip on' : 'chip'} onClick={() => setTab('simpan')}>Disimpan ({saved.length})</button>
       </div>
-      {data.length ? <div className="grid3">{data.map((a, i) => <Post a={a} i={i} custom key={a.id} />)}</div>
+      {data.length ? <div className="grid3">{data.map((a, i) => <Post a={a} i={i} custom place="artikel" key={a.id} />)}</div>
         : <p className="empty">{tab === 'semua' ? 'Belum ada artikel.' : 'Belum ada artikel tersimpan. Tekan ikon penanda di artikel mana saja untuk menyimpannya.'}</p>}
     </div>
   )
@@ -104,12 +104,10 @@ export function ArtikelDetail() {
   return (
     <article className="read">
       <Link to="/artikel" className="link back"><Icon n="arrow_back" size={18} />Semua artikel</Link>
-      {fotos(a).length
-        ? <div className="cover photo" style={{ backgroundImage: `linear-gradient(rgba(10,20,14,.15),rgba(10,20,14,.82)),url("${fotos(a)[0]}")` }}><h1>{a.judul}</h1></div>
-        : <div className="cover" style={{ background: a.warna, color: inkOn(a.warna) }}><h1>{a.judul}</h1></div>}
+      <Cover item={a} style={{ background: a.warna, color: inkOn(a.warna) }}><h1>{a.judul}</h1></Cover>
       <p className="meta">{a.penulis} · {fmt(a.tanggal)}</p>
       {paras(a.isi).map((p, i) => <p className="body" key={i}>{p}</p>)}
-      <Gallery list={fotos(a).slice(1)} />
+      <Gallery item={a} />
       <div className="acts flat">
         <button type="button" className={liked ? 'act liked' : 'act'} onClick={toggle} aria-pressed={liked} aria-label="Suka"><Icon n="favorite" fill={liked} /></button>
         <b>{count} suka</b>
@@ -120,14 +118,16 @@ export function ArtikelDetail() {
 
 export function Tentang() {
   const [tab, setTab] = useState('kegiatan')
-  const { acara, ready } = useContent()
+  const { acara, postingan, ready } = useContent()
   const tabs = [['kegiatan', 'grid_view', 'Postingan'], ['visi', 'star', 'Visi'], ['misi', 'target', 'Misi']]
   useTitle('Profil')
   const feed = byDate(acara)
-  useEffect(() => { loadInstagram() }, [])
+  const gram = [...postingan].sort((x, y) => y.tanggal.localeCompare(x.tanggal) || y.id.localeCompare(x.id)) // dibuat admin
+  useEffect(() => { if (ready && !gram.length) loadInstagram() }, [ready, gram.length])
   const { data: ig, loading: igLoading } = useInstagram()
   const short = (n) => (n == null ? '–' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',').replace(',0', '') + ' jt' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace('.', ',').replace(',0', '') + 'K' : String(n))
-  const stats = ig && ig.postingan != null
+  const stats = gram.length ? [[String(gram.length), 'Postingan'], [ig?.pengikut != null ? short(ig.pengikut) : profil.pengikut, 'Pengikut'], [ig?.mengikuti != null ? short(ig.mengikuti) : profil.mengikuti, 'Mengikuti']]
+    : ig && ig.postingan != null
     ? [[short(ig.postingan), 'Postingan'], [short(ig.pengikut), 'Pengikut'], [short(ig.mengikuti), 'Mengikuti']]
     : [[ready ? String(acara.length) : '–', 'Postingan'], [profil.pengikut, 'Pengikut'], [profil.mengikuti, 'Mengikuti']]
   return (
@@ -147,7 +147,8 @@ export function Tentang() {
       <div className="ptabs" role="tablist">
         {tabs.map(([k, ic, l]) => <button type="button" key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Icon n={ic} size={20} fill={tab === k} />{l}</button>)}
       </div>
-      {tab === 'kegiatan' && (ig && ig.posts.length ? (
+      {tab === 'kegiatan' && (gram.length ? <div className="feedcol">{gram.map((p) => <GramPost p={p} key={p.id} />)}</div>
+        : ig && ig.posts.length ? (
           <div className="feedcol">
             {ig.posts.map((p) => <IgPost p={p} user={ig.username || site.instagramUser} key={p.id} />)}
             <a className="btn ghost" href={site.instagram} target="_blank" rel="noreferrer">Lihat semua di Instagram</a>

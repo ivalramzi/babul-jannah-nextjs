@@ -1,6 +1,5 @@
 'use client'
-import { Component, useEffect, useLayoutEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { Component, useEffect } from 'react'
 import { Link } from './nav.jsx'
 import { startSync } from './store.js'
 import { Cursor, Toast } from './components.jsx'
@@ -17,10 +16,9 @@ export class Boundary extends Component {
   }
 }
 
-// Kursor, garis progres, toast, sinkronisasi data, dan service worker (sekali di layout).
+// Kursor, toast, sinkronisasi data, dan service worker (sekali di layout).
+// Gulir ke atas saat pindah halaman sudah ditangani Next.js, jadi tidak perlu scrollTo manual (dulu menyebabkan lonjakan).
 export default function Providers() {
-  const pathname = usePathname()
-  useLayoutEffect(() => window.scrollTo(0, 0), [pathname])
   useEffect(() => {
     startSync()
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
@@ -28,7 +26,6 @@ export default function Providers() {
   return (
     <>
       <Cursor />
-      <div key={'bar' + pathname} className="routebar" aria-hidden="true" />
       <Toast />
     </>
   )

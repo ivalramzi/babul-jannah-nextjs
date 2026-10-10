@@ -4,21 +4,22 @@ import seed from './content.json'
 /* ---------- Konten (jadwal, acara, artikel) — sumber utama: Redis lewat /api/content ---------- */
 const KEY = 'bj-content-cache-v2'
 const valid = (s) => s && Array.isArray(s.artikel) && Array.isArray(s.acara) && Array.isArray(s.jadwal)
+const EMPTY = { jadwal: [], acara: [], artikel: [], postingan: [], crop: {}, likes: {}, ready: false, offline: false }
 const cached = () => { try { const s = JSON.parse(localStorage.getItem(KEY)); return valid(s) ? s : null } catch { return null } }
 const first = cached()
-let state = first ? { ...first, likes: first.likes || {}, ready: true, offline: false } : { jadwal: [], acara: [], artikel: [], likes: {}, ready: false, offline: false }
+let state = first ? { ...EMPTY, ...first, postingan: first.postingan || [], crop: first.crop || {}, likes: first.likes || {}, ready: true, offline: false } : EMPTY
 const subs = new Set()
 const emit = () => subs.forEach((f) => f())
 const set = (n) => { state = n; emit() }
-const SERVER_STATE = { jadwal: [], acara: [], artikel: [], likes: {}, ready: false, offline: false } // dipakai saat render server & hidrasi
+const SERVER_STATE = EMPTY // dipakai saat render server & hidrasi
 export const useContent = () => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f) }, () => state, () => SERVER_STATE)
 
 const touched = {} // key suka yang baru diubah di perangkat ini (jangan ditimpa data CDN yang masih lama)
 function apply(d) {
   const likes = { ...(d.likes || {}) }
   for (const k in touched) { if (Date.now() - touched[k] < 20000 && k in state.likes) likes[k] = state.likes[k]; else delete touched[k] }
-  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, likes }
-  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
+  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, postingan: d.postingan || [], crop: d.crop || {}, likes }
+  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, postingan: state.postingan, crop: state.crop, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
   try { localStorage.setItem(KEY, JSON.stringify(next)) } catch {}
   set({ ...next, ready: true, offline: false })
 }
@@ -31,7 +32,7 @@ export function refresh(fresh = false) {
     .then((d) => { if (!valid(d)) throw new Error('bad'); apply(d); return true })
     .catch(() => {
       // Redis/jaringan tidak tersedia: tetap tampilkan cache terakhir, atau data awal bila belum pernah memuat
-      if (!state.ready) set({ ...seed, likes: {}, ready: true, offline: true }); else if (!state.offline) set({ ...state, offline: true })
+      if (!state.ready) set({ ...EMPTY, ...seed, postingan: [], likes: {}, ready: true, offline: true }); else if (!state.offline) set({ ...state, offline: true })
       return false
     })
     .finally(() => { clearTimeout(t); inflight = null })
@@ -50,9 +51,10 @@ export function startSync() {
 
 /* perubahan lokal setelah admin menyimpan (data sudah ada di Redis) */
 export function applyItem(kind, item) {
-  const arr = state[kind], has = arr.some((x) => x.id === item.id)
+  const arr = state[kind] || [], has = arr.some((x) => x.id === item.id)
   set({ ...state, [kind]: has ? arr.map((x) => (x.id === item.id ? item : x)) : [item, ...arr] })
 }
+export const applyCrop = (crop) => set({ ...state, crop })
 export function removeItem(kind, id) { set({ ...state, [kind]: state[kind].filter((x) => x.id !== id) }) }
 
 /* ---------- Suka (data nyata, disimpan di Redis) ---------- */

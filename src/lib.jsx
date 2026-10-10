@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useContent, sendLike, likeKey } from './store.js'
+import { PLACES } from './data.js'
 
 export function useStored(key, init) {
   const read = () => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init } catch { return init } }
@@ -38,16 +39,30 @@ export const inkOn = (hex) => { const n = parseInt((hex || '#0a6b30').slice(1), 
 export const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'
 export const uid = () => Math.random().toString(36).slice(2, 9)
 export const fotos = (x) => (Array.isArray(x?.foto) ? x.foto.filter(Boolean) : [])
-export const MAX_FOTO = 4
+export const MAX_FOTO = 4, MAX_POST = 10
+
+/* ---------- Crop per tempat ----------
+   Rasio tiap tempat (beranda, detail, feed, …) diatur di admin → disimpan di Redis (content.crop).
+   Posisi & zoom tiap foto per tempat disimpan di item.fokus[i][tempat] = {x,y,z}. Crop hanya lewat CSS,
+   jadi file asli tidak berubah dan bisa diatur ulang kapan saja. */
+export const ratioOf = (crop, place) => (crop && crop[place]) || PLACES[place]?.def || '1/1'
+export const useRatio = (place) => ratioOf(useContent().crop, place)
+export const focusOf = (x, i, place) => { const f = x?.fokus?.[i]?.[place] || {}; return { x: f.x ?? 50, y: f.y ?? 50, z: f.z ?? 1 } }
+export const imgStyle = (f) => ({ objectPosition: `${f.x}% ${f.y}%`, ...(f.z > 1 && { transform: `scale(${f.z})`, transformOrigin: `${f.x}% ${f.y}%` }) })
+export const fit = (x, i, place) => imgStyle(focusOf(x, i, place))
 // Kecilkan foto di browser (maks 1000px, JPEG) supaya ringan disimpan di Redis
-export function compressImage(file, max = 1000, q = 0.74) {
+export function compressImage(file, max = 1280, q = 0.78) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), img = new Image()
     img.onload = () => {
       const k = Math.min(1, max / Math.max(img.width, img.height))
       const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k)
       const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height)
-      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q))
+      URL.revokeObjectURL(url)
+      // server membatasi ±900 KB per foto: turunkan kualitas bila masih terlalu besar
+      let out = c.toDataURL('image/jpeg', q)
+      for (let t = q; out.length > 850_000 && t > 0.4; ) { t -= 0.08; out = c.toDataURL('image/jpeg', t) }
+      res(out)
     }
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('gagal')) }
     img.src = url

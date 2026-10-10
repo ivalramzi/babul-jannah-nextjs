@@ -55,7 +55,7 @@ export default function Home() {
 
       {artikel.length > 0 && <section className="wrap sec">
         <div className="row-h"><h2 className="h2">Artikel terbaru</h2><Link className="link" to="/artikel">Semua</Link></div>
-        <div className="grid3">{byDate(artikel).slice(0, 3).map((a, i) => <Post a={a} i={i} key={a.id} />)}</div>
+        <div className="grid3">{byDate(artikel).slice(0, 3).map((a, i) => <Post a={a} i={i} place="beranda" key={a.id} />)}</div>
       </section>}
 
       <section className="wrap sec">

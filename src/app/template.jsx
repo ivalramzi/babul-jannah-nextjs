@@ -3,7 +3,9 @@ import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { Boundary } from '../shell.jsx'
 
-// template.jsx dipasang ulang di setiap pindah halaman, jadi animasi masuk (.route) diputar tiap navigasi.
+// Hanya <main> yang diganti saat pindah halaman (navbar, tab bar & footer ada di layout, tidak dipasang ulang).
+// Transisinya cukup fade singkat pada <main>, tanpa garis progres dan tanpa animasi ulang tiap elemen,
+// supaya perpindahan halaman tidak terasa seperti memuat ulang.
 export default function Template({ children }) {
   const pathname = usePathname()
   return (

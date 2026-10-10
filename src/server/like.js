@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (!hasRedis()) return send(res, 503, { error: 'redis_not_configured' })
   try {
     const { kind, id, device, like } = await readJson(req)
-    if (!['artikel', 'acara'].includes(kind) || !SAFE_ID.test(String(id)) || !/^[a-zA-Z0-9-]{8,64}$/.test(String(device))) return send(res, 400, { error: 'bad_request' })
+    if (!['artikel', 'acara', 'postingan'].includes(kind) || !SAFE_ID.test(String(id)) || !/^[a-zA-Z0-9-]{8,64}$/.test(String(device))) return send(res, 400, { error: 'bad_request' })
     if (!(await cmd('HEXISTS', 'bj:' + kind, id))) return send(res, 404, { error: 'not_found' })
     const key = `${kind}:${id}`, set = 'bj:likes:' + key
     const [, n] = await pipe([[like ? 'SADD' : 'SREM', set, device], ['SCARD', set]])

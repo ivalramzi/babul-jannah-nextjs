@@ -26,6 +26,13 @@ Tambah/edit/hapus **Artikel**, **Acara**, **Jadwal** (maks 4 foto per artikel/ac
 Menyimpan artikel/acara **baru** otomatis mengirim notifikasi ke pelanggan pengumuman. Ada juga form **Kirim notifikasi** manual.
 Ekspor/Impor = cadangan JSON. Login diperiksa di server (dibatasi 5 percobaan/menit).
 
+## Postingan feed profil & crop gambar
+- **Admin → Postingan**: buat postingan ala Instagram (hingga 10 foto per postingan = carousel geser, caption, lokasi, tanggal). Semuanya tampil di **Profil → Postingan** (terbaru di atas). Bila belum ada postingan buatan admin, halaman Profil memakai cadangan lama (feed Instagram asli, lalu daftar acara).
+- **Admin → Pengaturan crop**: pilih rasio gambar untuk tiap tempat: Beranda (kartu artikel), halaman Artikel (kartu), Profil (feed), Detail (sampul), Detail (galeri), dan Pop-up acara. Contoh: Beranda 1:1, sampul detail 16:9.
+- **Tombol *crop* di tiap foto** (editor artikel/acara/postingan): geser gambar dan atur zoom untuk **tiap tempat secara terpisah**, dengan pratinjau sesuai rasio. Ada tombol *Salin ke semua tempat*.
+- Crop hanya lewat CSS (`aspect-ratio` + `object-position` + zoom), jadi foto asli tidak berubah dan posisi bisa diatur ulang kapan saja. Pengaturan disimpan di Redis (`bj:crop` untuk rasio, `fokus` di tiap item untuk posisi).
+- Data baru Redis: `bj:postingan` (hash id→JSON). Ekspor/Impor ikut membawa postingan & pengaturan crop; cadangan lama tanpa postingan tetap bisa diimpor.
+
 ## Notifikasi
 - Ikon lonceng di navbar: pengumuman acara & artikel baru.
 - Tombol **Ingatkan** pada jadwal/acara: pengingat untuk item itu.
@@ -39,4 +46,4 @@ Ekspor/Impor = cadangan JSON. Login diperiksa di server (dibatasi 5 percobaan/me
 
 ## Ubah konten lain
 Nama, WhatsApp, alamat, stories, pengikut/mengikuti: `src/data.js` · Warna: `:root` di `src/styles.css`.
-Jumlah *postingan* di profil dihitung otomatis dari jumlah acara.
+Jumlah *postingan* di profil dihitung otomatis dari jumlah postingan buatan admin.
