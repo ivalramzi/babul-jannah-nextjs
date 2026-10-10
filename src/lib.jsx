@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useContent, sendLike, likeKey } from './store.js'
-import { PLACES, profilDefault } from './data.js'
+import { PLACES, profilDefault, stories } from './data.js'
 
 export function useStored(key, init) {
   const read = () => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init } catch { return init } }
@@ -157,12 +157,36 @@ export async function setAnnounce(on) {
   try { const e = await currentEndpoint(); if (e) { const reg = await navigator.serviceWorker.getRegistration('/sw.js'); const sub = await reg.pushManager.getSubscription(); const s = sub.toJSON(); await post({ action: 'subscribe', sub: s, all: false }) } return { ok: true } } catch { return { ok: false, why: 'error' } }
 }
 
+/* ---------- Urutan ---------- */
+// Postingan: yang disematkan paling atas, lalu tanggal terbaru. Bila tanggal sama → nomor urut dari admin (kecil = atas);
+// postingan baru yang belum diurutkan tampil di atas tanggalnya. Tidak ada lagi urutan acak.
+export const byPost = (a, b) => (b.sematkan ? 1 : 0) - (a.sematkan ? 1 : 0) || b.tanggal.localeCompare(a.tanggal) || (a.urut ?? -Infinity) - (b.urut ?? -Infinity) || (b.dibuat || 0) - (a.dibuat || 0) || a.id.localeCompare(b.id)
+export const sortPosts = (l) => [...l].sort(byPost)
+export const byUrut = (a, b) => (a.urut ?? 1e9) - (b.urut ?? 1e9) || String(a.label || a.nama || a.id).localeCompare(String(b.label || b.nama || b.id))
+
+/* ---------- Sorotan (stories) ----------
+   Admin menulis slide sebagai teks: blok dipisah baris kosong; baris pertama = judul, sisanya = isi.
+   Baris opsional "link: /jadwal | Lihat jadwal" menambah tombol ke halaman di situs. */
+export function parseSlides(text = '', icon = 'star') {
+  return String(text).split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean).map((b, i) => {
+    const lines = b.split('\n').map((l) => l.trim()).filter(Boolean)
+    const li = lines.findIndex((l) => /^link:\s*\//i.test(l))
+    const m = li >= 0 ? /^link:\s*(\/\S*)\s*(?:\|\s*(.+))?$/i.exec(lines[li]) : null
+    const rest = lines.filter((_, n) => n !== li)
+    return { tone: tones[i % 3], icon, title: rest[0] || '', text: rest.slice(1).join(' '), ...(m && { to: m[1], cta: (m[2] || 'Buka').trim() }) }
+  })
+}
+export function useSorotan() {
+  const { sorotan } = useContent()
+  return useMemo(() => (sorotan?.length ? [...sorotan].sort(byUrut).map((s) => ({ id: s.id, label: s.label, icon: s.icon || 'star', slides: parseSlides(s.slides, s.icon || 'star') })).filter((s) => s.slides.length) : stories), [sorotan])
+}
+
 /* Profil: nilai dari admin (Redis) menimpa bawaan di data.js bila diisi */
 export function useProfil() {
   const { profil } = useContent(), p = profil || {}
   return {
     bio: p.bio || profilDefault.bio, visi: p.visi || profilDefault.visi,
     misi: p.misi?.length ? p.misi : profilDefault.misi,
-    pengikut: p.pengikut || '', mengikuti: p.mengikuti || '', foto: p.foto || '',
+    pengikut: p.pengikut || '', infaq: p.infaq || '', foto: p.foto || '',
   }
 }

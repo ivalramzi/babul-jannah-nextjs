@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from './nav.jsx'
-import { site, stories } from './data.js'
+import { site } from './data.js'
 import { useContent } from './store.js'
-import { Icon, useStored, toast, toggleIn, tones, fmt, upcoming, daysLeft, inkOn, fotos, useLike, scrollToTop, setReminder, setAnnounce, PUSH_MSG, pushSupported, paras, fit, useRatio } from './lib.jsx'
+import { Icon, useStored, toast, toggleIn, tones, fmt, upcoming, daysLeft, inkOn, fotos, useLike, scrollToTop, setReminder, setAnnounce, PUSH_MSG, pushSupported, paras, fit, useRatio, useSorotan } from './lib.jsx'
 
 export const Logo = ({ size = 40 }) => <img className="logo" src={size > 64 ? '/logo-512.png' : '/logo-128.png'} width={size} height={size} alt="" decoding="async" />
 
@@ -92,6 +92,7 @@ export function Nav() {
 
 /* ---------- Stories ---------- */
 export function Stories() {
+  const stories = useSorotan()
   const [open, setOpen] = useState(null)
   const [seen, setSeen] = useStored('bj-seen', [])
   const [paused, setPaused] = useState(false)
@@ -115,6 +116,7 @@ export function Stories() {
   }, [isOpen])
   const cur = open && stories[open.g]
   const slide = cur && cur.slides[open.s]
+  if (!stories.length) return null
   return (
     <>
       <div className="stories">
@@ -293,7 +295,7 @@ export function PostGrid({ list }) {
           return (
             <button type="button" key={p.id} className="itile" style={{ aspectRatio: ratio }} aria-label={`Buka postingan ${i + 1}`} onClick={() => setOpen(i)}>
               {fl.length ? <img src={fl[0]} style={fit(p, 0, 'grid')} alt="" loading={i < 6 ? 'eager' : 'lazy'} decoding="async" draggable="false" /> : <span className="itext t-green">{(p.caption || '').slice(0, 90)}</span>}
-              {fl.length > 1 && <span className="itype" aria-hidden="true"><Icon n="photo_library" size={20} fill /></span>}
+              {(fl.length > 1 || p.sematkan) && <span className="itype" aria-hidden="true">{p.sematkan && <Icon n="push_pin" size={20} fill />}{fl.length > 1 && <Icon n="photo_library" size={20} fill />}</span>}
             </button>
           )
         })}
@@ -313,37 +315,6 @@ export function PostGrid({ list }) {
   )
 }
 
-/* ---------- Postingan kegiatan ala feed Instagram (cadangan dari data acara bila admin belum membuat postingan) ---------- */
-export const FeedPost = memo(function FeedPost({ e, i = 0 }) {
-  const { liked, count, toggle } = useLike('acara', e.id)
-  const [burst, setBurst] = useState(0)
-  const [desc, setDesc] = useState(false)
-  const [more, setMore] = useState(false)
-  const done = !upcoming([e]).length
-  const text = (done && e.laporan) ? e.laporan : e.deskripsi || ''
-  const dbl = () => { if (!liked) toggle(); setBurst((b) => b + 1) }
-  return (
-    <article className="post feed">
-      <div className="phead"><span className="ring sm"><Logo size={36} /></span><div><b>{site.nama}</b><small>{e.lokasi}</small></div>
-        <span className="chip soft fchip">{done ? 'Selesai' : daysLeft(e.tanggal)}</span></div>
-      <FeedMedia item={e} onDbl={dbl} burst={burst} fallback={<div className={`rail solo t-${tones[i % 3]}`}><div className="fcard"><Icon n="event" size={40} fill /><h3>{e.judul}</h3><p>{fmt(e.tanggal, { weekday: 'long', day: 'numeric', month: 'long' })} · {e.jam} WIB</p></div></div>} />
-      <div className="acts">
-        <button type="button" className={liked ? 'act liked' : 'act'} onClick={toggle} aria-pressed={liked} aria-label="Suka"><Icon n="favorite" fill={liked} /></button>
-        <button type="button" className="act" onClick={() => setDesc(true)} aria-label="Lihat deskripsi"><Icon n="chat_bubble" /></button>
-        <button type="button" className="act" onClick={() => sharePost(e.judul, `/acara/${e.id}`)} aria-label="Bagikan"><Icon n="send" /></button>
-        <Link className="act right" to={`/acara/${e.id}`} aria-label="Buka detail acara"><Icon n="event" /></Link>
-      </div>
-      <div className="cap">
-        <b>{count} suka</b>
-        <p className={more ? '' : 'clamp'}><b>{site.nama}</b> <span className="ftitle">{e.judul}.</span> {text.replace(/\n+/g, ' ')}</p>
-        {!more && text.length > 110 && <button type="button" className="more" onClick={() => setMore(true)}>selengkapnya</button>}
-        <small>{fmt(e.tanggal, { day: 'numeric', month: 'long', year: 'numeric' })}{e.peserta > 0 ? ` · ${e.peserta} peserta` : ''}</small>
-      </div>
-      {desc && <DescSheet kind="acara" id={e.id} title={e.judul} sub={`${fmt(e.tanggal)} · ${e.jam} WIB · ${e.lokasi}`} text={text} to={`/acara/${e.id}`} onClose={() => setDesc(false)} />}
-    </article>
-  )
-})
-
 /* ---------- Sampul halaman detail (foto dengan crop dari tempat "cover") ---------- */
 export function Cover({ item, tone = 'green', style, place = 'cover', children }) {
   const ratio = useRatio(place), has = fotos(item).length > 0
@@ -354,37 +325,6 @@ export function Cover({ item, tone = 'green', style, place = 'cover', children }
     </div>
   )
 }
-
-/* ---------- Postingan asli dari Instagram ---------- */
-const igImg = (u) => '/api/igimg?u=' + encodeURIComponent(u)
-const nf = (n) => new Intl.NumberFormat('id-ID').format(n || 0)
-export const IgPost = memo(function IgPost({ p, user }) {
-  const ratio = useRatio('feed')
-  const [more, setMore] = useState(false)
-  const [bad, setBad] = useState(false)
-  const url = `https://www.instagram.com/p/${p.id}/`
-  const share = async () => { try { if (navigator.share) await navigator.share({ title: site.nama, url }); else { await navigator.clipboard.writeText(url); toast('Tautan disalin') } } catch {} }
-  return (
-    <article className="post feed">
-      <div className="phead"><span className="ring sm"><Logo size={36} /></span><div><b>{user}</b><small>{p.ts ? fmt(new Date(p.ts * 1000).toISOString().slice(0, 10)) : 'Instagram'}</small></div></div>
-      <a className="fmedia" style={{ aspectRatio: ratio }} href={url} target="_blank" rel="noreferrer" aria-label="Buka di Instagram">
-        {bad ? <div className="rail solo t-green"><div className="fcard"><Icon n="event" size={40} fill /><p>Foto tidak dapat dimuat</p></div></div>
-          : <img className="igimg" src={igImg(p.img)} alt="" loading="lazy" decoding="async" draggable="false" onError={() => setBad(true)} />}
-        {(p.multi || p.video) && <span className="count">{p.video ? 'Video' : 'Album'}</span>}
-      </a>
-      <div className="acts">
-        <a className="act" href={url} target="_blank" rel="noreferrer" aria-label="Suka di Instagram"><Icon n="favorite" /></a>
-        <a className="act" href={url} target="_blank" rel="noreferrer" aria-label="Komentar di Instagram"><Icon n="chat_bubble" /></a>
-        <button type="button" className="act" onClick={share} aria-label="Bagikan"><Icon n="send" /></button>
-      </div>
-      <div className="cap">
-        <b>{nf(p.likes)} suka{p.comments ? ` · ${nf(p.comments)} komentar` : ''}</b>
-        {p.caption && <p className={more ? '' : 'clamp'}><b>{user}</b> {p.caption.replace(/\n+/g, ' ')}</p>}
-        {!more && p.caption.length > 110 && <button type="button" className="more" onClick={() => setMore(true)}>selengkapnya</button>}
-      </div>
-    </article>
-  )
-})
 
 /* ---------- Tombol pengingat ---------- */
 function Bell({ id, label }) {

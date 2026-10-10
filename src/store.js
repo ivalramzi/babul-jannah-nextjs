@@ -4,10 +4,10 @@ import seed from './content.json'
 /* ---------- Konten (jadwal, acara, artikel) — sumber utama: Redis lewat /api/content ---------- */
 const KEY = 'bj-content-cache-v2'
 const valid = (s) => s && Array.isArray(s.artikel) && Array.isArray(s.acara) && Array.isArray(s.jadwal)
-const EMPTY = { jadwal: [], acara: [], artikel: [], postingan: [], crop: {}, profil: {}, likes: {}, ready: false, offline: false }
+const EMPTY = { jadwal: [], acara: [], artikel: [], postingan: [], sorotan: [], pengurus: [], crop: {}, profil: {}, likes: {}, ready: false, offline: false }
 const cached = () => { try { const s = JSON.parse(localStorage.getItem(KEY)); return valid(s) ? s : null } catch { return null } }
 const first = cached()
-let state = first ? { ...EMPTY, ...first, postingan: first.postingan || [], crop: first.crop || {}, profil: first.profil || {}, likes: first.likes || {}, ready: true, offline: false } : EMPTY
+let state = first ? { ...EMPTY, ...first, postingan: first.postingan || [], sorotan: first.sorotan || [], pengurus: first.pengurus || [], crop: first.crop || {}, profil: first.profil || {}, likes: first.likes || {}, ready: true, offline: false } : EMPTY
 const subs = new Set()
 const emit = () => subs.forEach((f) => f())
 const set = (n) => { state = n; emit() }
@@ -18,8 +18,8 @@ const touched = {} // key suka yang baru diubah di perangkat ini (jangan ditimpa
 function apply(d) {
   const likes = { ...(d.likes || {}) }
   for (const k in touched) { if (Date.now() - touched[k] < 20000 && k in state.likes) likes[k] = state.likes[k]; else delete touched[k] }
-  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, postingan: d.postingan || [], crop: d.crop || {}, profil: d.profil || {}, likes }
-  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, postingan: state.postingan, crop: state.crop, profil: state.profil, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
+  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, postingan: d.postingan || [], sorotan: d.sorotan || [], pengurus: d.pengurus || [], crop: d.crop || {}, profil: d.profil || {}, likes }
+  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, postingan: state.postingan, sorotan: state.sorotan, pengurus: state.pengurus, crop: state.crop, profil: state.profil, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
   try { localStorage.setItem(KEY, JSON.stringify(next)) } catch {}
   set({ ...next, ready: true, offline: false })
 }
@@ -32,7 +32,7 @@ export function refresh(fresh = false) {
     .then((d) => { if (!valid(d)) throw new Error('bad'); apply(d); return true })
     .catch(() => {
       // Redis/jaringan tidak tersedia: tetap tampilkan cache terakhir, atau data awal bila belum pernah memuat
-      if (!state.ready) set({ ...EMPTY, ...seed, postingan: [], likes: {}, ready: true, offline: true }); else if (!state.offline) set({ ...state, offline: true })
+      if (!state.ready) set({ ...EMPTY, ...seed, postingan: [], sorotan: [], pengurus: [], likes: {}, ready: true, offline: true }); else if (!state.offline) set({ ...state, offline: true })
       return false
     })
     .finally(() => { clearTimeout(t); inflight = null })
@@ -55,6 +55,7 @@ export function applyItem(kind, item) {
   set({ ...state, [kind]: has ? arr.map((x) => (x.id === item.id ? item : x)) : [item, ...arr] })
 }
 export const applyCrop = (crop) => set({ ...state, crop })
+export const applyOrder = (kind, ids) => { const r = new Map(ids.map((id, i) => [id, i])); set({ ...state, [kind]: state[kind].map((x) => (r.has(x.id) ? { ...x, urut: r.get(x.id) } : x)) }) }
 export const applyProfil = (profil) => set({ ...state, profil })
 export function removeItem(kind, id) { set({ ...state, [kind]: state[kind].filter((x) => x.id !== id) }) }
 
@@ -103,22 +104,3 @@ export async function adminCall(action, body = {}) {
   if (!r.ok) { const e = new Error(j.error || 'Gagal'); e.code = r.status; e.data = j; throw e }
   return j
 }
-
-/* ---------- Instagram (profil + feed asli lewat /api/instagram) ---------- */
-const IGK = 'bj-ig-cache-v1'
-const igCached = () => { try { const s = JSON.parse(localStorage.getItem(IGK)); return s && Array.isArray(s.posts) ? s : null } catch { return null } }
-let ig = { data: igCached(), loading: true, failed: false }
-const igSubs = new Set()
-const igSet = (n) => { ig = n; igSubs.forEach((f) => f()) }
-let igStarted = false
-export function loadInstagram() {
-  if (igStarted) return; igStarted = true
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000)
-  fetch('/api/instagram', { signal: ctl.signal })
-    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json() })
-    .then((d) => { if (!Array.isArray(d.posts)) throw new Error('bad'); try { localStorage.setItem(IGK, JSON.stringify(d)) } catch {}; igSet({ data: d, loading: false, failed: false }) })
-    .catch(() => igSet({ data: ig.data, loading: false, failed: !ig.data }))
-    .finally(() => clearTimeout(t))
-}
-const IG_SERVER = { data: null, loading: true, failed: false }
-export const useInstagram = () => useSyncExternalStore((f) => { igSubs.add(f); return () => igSubs.delete(f) }, () => ig, () => IG_SERVER)

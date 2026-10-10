@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useParams } from './nav.jsx'
-import { site, profil } from './data.js'
-import { useContent, useInstagram, loadInstagram } from './store.js'
-import { Icon, Head, useProfil, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
-import { Post, FeedPost, PostGrid, IgPost, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
+import { site } from './data.js'
+import { useContent } from './store.js'
+import { Icon, Head, useProfil, sortPosts, byUrut, fit, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
+import { Post, PostGrid, Stories, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
 
 export function Jadwal() {
   const { jadwal, ready } = useContent()
@@ -116,21 +116,25 @@ export function ArtikelDetail() {
   )
 }
 
+const HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad']
+const initials = (n = '') => n.replace(/^(ust\.?|ustadz|ustadzah|ustz\.?|kh\.?|h\.|hj\.)\s+/i, '').trim().slice(0, 1).toUpperCase() || '•'
+
 export function Tentang() {
-  const [tab, setTab] = useState('kegiatan')
-  const { acara, postingan, ready } = useContent()
-  const tabs = [['kegiatan', 'grid_view', 'Postingan'], ['visi', 'star', 'Visi'], ['misi', 'target', 'Misi']]
-  useTitle('Profil')
-  const feed = byDate(acara)
+  const [tab, setTab] = useState('postingan')
+  const { postingan, jadwal, pengurus, ready } = useContent()
   const pf = useProfil()
-  const gram = [...postingan].sort((x, y) => y.tanggal.localeCompare(x.tanggal) || y.id.localeCompare(x.id)) // dibuat admin
-  useEffect(() => { if (ready && (!gram.length || !(pf.pengikut && pf.mengikuti))) loadInstagram() }, [ready, gram.length, pf.pengikut, pf.mengikuti])
-  const { data: ig, loading: igLoading } = useInstagram()
-  const short = (n) => (n == null ? '–' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',').replace(',0', '') + ' jt' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace('.', ',').replace(',0', '') + 'K' : String(n))
-  const posts = gram.length ? String(gram.length) : ig && ig.postingan != null ? short(ig.postingan) : ready ? String(acara.length) : '–'
-  const fol = pf.pengikut || (ig?.pengikut != null ? short(ig.pengikut) : profil.pengikut)
-  const ing = pf.mengikuti || (ig?.mengikuti != null ? short(ig.mengikuti) : profil.mengikuti)
-  const stats = [[posts, 'Postingan'], [fol, 'Pengikut'], [ing, 'Mengikuti']]
+  useTitle('Profil')
+  const gram = useMemo(() => sortPosts(postingan), [postingan])
+  const tim = useMemo(() => [...pengurus].sort(byUrut), [pengurus])
+  const kajian = useMemo(() => [...jadwal].sort((a, b) => HARI.indexOf(a.hari) - HARI.indexOf(b.hari) || a.jam.localeCompare(b.jam)), [jadwal])
+  const stats = [[ready ? String(gram.length) : '–', 'Postingan'], [ready ? String(jadwal.length) : '–', 'Kajian rutin'], ...(pf.pengikut ? [[pf.pengikut, 'Pengikut']] : [])]
+  const wa = `https://wa.me/${site.wa}?text=${encodeURIComponent('Assalamu\u2019alaikum, saya ingin bertanya.')}`
+  const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.alamat)}`
+  const tabs = [['postingan', 'grid_view', 'Postingan'], ['tentang', 'star', 'Tentang']]
+  const share = async () => {
+    const url = location.origin + '/tentang'
+    try { if (navigator.share) await navigator.share({ title: site.nama, url }); else { await navigator.clipboard.writeText(url); toast('Tautan profil disalin') } } catch {}
+  }
   return (
     <div className="wrap page">
       <div className="pro-top">
@@ -141,27 +145,55 @@ export function Tentang() {
           <div className="stats">{stats.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>
           <div className="actions left">
             <a href={site.instagram} target="_blank" rel="noreferrer" className="btn">Ikuti di Instagram</a>
-            <Link to="/kontak" className="btn ghost">Hubungi</Link>
+            <a href={wa} target="_blank" rel="noreferrer" className="btn ghost">WhatsApp</a>
+            <button type="button" className="btn ghost" onClick={share} aria-label="Bagikan profil"><Icon n="send" size={18} />Bagikan</button>
           </div>
         </div>
       </div>
+      <div className="pro-hl"><Stories /></div>
       <div className="ptabs" role="tablist">
         {tabs.map(([k, ic, l]) => <button type="button" key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Icon n={ic} size={20} fill={tab === k} />{l}</button>)}
       </div>
-      {tab === 'kegiatan' && (gram.length ? <PostGrid list={gram} />
-        : ig && ig.posts.length ? (
-          <div className="feedcol">
-            {ig.posts.map((p) => <IgPost p={p} user={ig.username || site.instagramUser} key={p.id} />)}
-            <a className="btn ghost" href={site.instagram} target="_blank" rel="noreferrer">Lihat semua di Instagram</a>
-          </div>)
-        : igLoading ? <p className="empty" role="status">Memuat postingan…</p>
+      {tab === 'postingan' && (gram.length ? <PostGrid list={gram} />
         : !ready ? <p className="empty" role="status">Memuat…</p>
-        : feed.length ? <div className="feedcol">{feed.map((e, i) => <FeedPost e={e} i={i} key={e.id} />)}</div>
-        : <p className="empty">Belum ada kegiatan yang diposting.</p>)}
-      {tab === 'visi' && <div className="card"><h3>Visi</h3><p className="bio">{pf.visi}</p></div>}
-      {tab === 'misi' && (
-        <div className="card"><h3>Misi</h3>
-          <ul className="ul">{pf.misi.map((m, i) => <li key={i}>{m}</li>)}</ul></div>
+        : <p className="empty">Belum ada postingan. Lihat kegiatan terbaru kami di Instagram.</p>)}
+      {tab === 'postingan' && <div className="actions"><a className="btn ghost" href={site.instagram} target="_blank" rel="noreferrer">Lihat semua di Instagram</a></div>}
+      {tab === 'tentang' && (
+        <div className="about">
+          <div className="card"><h3>Visi</h3><p className="bio">{pf.visi}</p></div>
+          <div className="card"><h3>Misi</h3><ul className="ul">{pf.misi.map((m, i) => <li key={i}>{m}</li>)}</ul></div>
+          <div className="card">
+            <h3>Alamat & kontak</h3>
+            <p>{site.alamat}</p>
+            <div className="actions left"><a className="btn sm" href={maps} target="_blank" rel="noreferrer"><Icon n="location_on" size={18} />Buka di Maps</a><a className="btn sm ghost" href={wa} target="_blank" rel="noreferrer">WhatsApp</a></div>
+            <p className="socials"><a className="link" href={site.instagram} target="_blank" rel="noreferrer">Instagram</a><a className="link" href={site.youtube} target="_blank" rel="noreferrer">YouTube</a><a className="link" href={`mailto:${site.email}`}>Email</a></p>
+          </div>
+          {kajian.length > 0 && (
+            <div className="card">
+              <h3>Kajian rutin</h3>
+              <ul className="mini">{kajian.map((j) => <li key={j.id}><b>{j.hari}</b><span>{j.jam} · {j.judul}</span></li>)}</ul>
+              <Link to="/jadwal" className="link">Lihat jadwal lengkap</Link>
+            </div>
+          )}
+          {pf.infaq && (
+            <div className="card">
+              <h3>Infaq & donasi</h3>
+              <p className="bio">{pf.infaq}</p>
+              <div className="actions left"><a className="btn sm ghost" href={`https://wa.me/${site.wa}?text=${encodeURIComponent('Assalamu\u2019alaikum, saya ingin konfirmasi infaq.')}`} target="_blank" rel="noreferrer">Konfirmasi via WhatsApp</a></div>
+            </div>
+          )}
+          {tim.length > 0 && (
+            <div className="card">
+              <h3>Pengurus & pemateri</h3>
+              <ul className="team">{tim.map((t) => (
+                <li key={t.id}>
+                  <span className="tav">{fotos(t).length ? <img src={fotos(t)[0]} style={fit(t, 0, 'pengurus')} alt="" loading="lazy" decoding="async" /> : initials(t.nama)}</span>
+                  <b>{t.nama}</b>{t.peran && <small>{t.peran}</small>}
+                </li>
+              ))}</ul>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

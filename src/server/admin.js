@@ -2,11 +2,10 @@ import crypto from 'node:crypto'
 import { hasRedis, cmd, pipe } from './_redis.js'
 import { seedIfEmpty } from './_content.js'
 import { broadcast, pushReady } from './_push.js'
-import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID, MAX_FOTO, cleanFokus, cleanCrop, cleanProfil } from './_util.js'
+import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID, MAX_FOTO, REQUIRED_KINDS, ORDERABLE, cleanFokus, cleanCrop, cleanProfil, cleanItem } from './_util.js'
 
 const fotoId = (url = '') => (/^\/api\/foto\?id=([a-f0-9]{16,40})$/.exec(url) || [])[1]
 const clean = (it) => { const o = { ...it }; delete o._exists; delete o.suka; delete o.komentar; return o }
-const cap = (s, n) => String(s ?? '').slice(0, n)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method' })
@@ -37,7 +36,7 @@ export default async function handler(req, res) {
 
     if (b.action === 'save') {
       if (!KINDS.includes(b.kind) || !b.item || !SAFE_ID.test(String(b.item.id))) return send(res, 400, { error: 'bad_request' }, H)
-      const item = clean(b.item), key = 'bj:' + b.kind
+      const item = cleanItem(b.kind, clean(b.item)), key = 'bj:' + b.kind
       const old = await cmd('HGET', key, item.id)
       const isNew = !old
       if (Array.isArray(item.foto)) {
@@ -45,7 +44,7 @@ export default async function handler(req, res) {
         const pairs = item.foto.map((u, i) => [u, item.fokus?.[i]]).filter(([u]) => fotoId(u)).slice(0, MAX_FOTO[b.kind] || 4)
         item.foto = pairs.map((p) => p[0]); item.fokus = pairs.map((p) => cleanFokus(p[1]))
       } else delete item.fokus
-      if (b.kind === 'postingan') { item.caption = cap(item.caption, 2200); item.lokasi = cap(item.lokasi, 120); if (!item.foto?.length && !item.caption.trim()) return send(res, 400, { error: 'empty_post' }, H) }
+      if (b.kind === 'postingan' && !item.foto?.length && !item.caption.trim()) return send(res, 400, { error: 'empty_post' }, H)
       const cmds = [['HSET', key, item.id, JSON.stringify(item)]]
       // hapus foto lama yang sudah tidak dipakai
       if (old) { const keep = new Set((item.foto || []).map(fotoId)); try { (JSON.parse(old).foto || []).map(fotoId).filter((x) => x && !keep.has(x)).forEach((x) => cmds.push(['DEL', 'bj:foto:' + x])) } catch {} }
@@ -72,13 +71,25 @@ export default async function handler(req, res) {
     if (b.action === 'import') {
       const d = b.data || {}
       // cadangan lama belum punya "postingan": bagian itu dilewati (data postingan yang ada tidak dihapus)
-      if (!KINDS.every((k) => Array.isArray(d[k]) || (k === 'postingan' && d[k] === undefined))) return send(res, 400, { error: 'bad_data' }, H)
+      if (!KINDS.every((k) => Array.isArray(d[k]) || (!REQUIRED_KINDS.includes(k) && d[k] === undefined))) return send(res, 400, { error: 'bad_data' }, H)
       const cmds = []
       if (d.crop) cmds.push(['SET', 'bj:crop', JSON.stringify(cleanCrop(d.crop))])
       if (d.profil) cmds.push(['SET', 'bj:profil', JSON.stringify(cleanProfil(d.profil))])
-      for (const k of KINDS) { if (!Array.isArray(d[k])) continue; cmds.push(['DEL', 'bj:' + k]); for (const it of d[k]) if (SAFE_ID.test(String(it.id))) cmds.push(['HSET', 'bj:' + k, it.id, JSON.stringify(clean(it))]) }
+      for (const k of KINDS) { if (!Array.isArray(d[k])) continue; cmds.push(['DEL', 'bj:' + k]); for (const it of d[k]) if (SAFE_ID.test(String(it.id))) cmds.push(['HSET', 'bj:' + k, it.id, JSON.stringify(cleanItem(k, clean(it)))]) }
       cmds.push(['SET', 'bj:seeded', '1'])
       await pipe(cmds)
+      return send(res, 200, { ok: true }, H)
+    }
+
+    // Urutan tampil (mis. postingan dengan tanggal sama): daftar id sesuai urutan baru → tiap item diberi nomor urut
+    if (b.action === 'reorder') {
+      const ids = Array.isArray(b.ids) ? b.ids.map(String).slice(0, 500) : []
+      if (!ORDERABLE.includes(b.kind) || !ids.length || !ids.every((id) => SAFE_ID.test(id))) return send(res, 400, { error: 'bad_request' }, H)
+      const key = 'bj:' + b.kind
+      const got = await pipe(ids.map((id) => ['HGET', key, id]))
+      const cmds = []
+      got.forEach((raw, i) => { try { const it = JSON.parse(raw); it.urut = i; cmds.push(['HSET', key, ids[i], JSON.stringify(it)]) } catch {} })
+      if (cmds.length) await pipe(cmds)
       return send(res, 200, { ok: true }, H)
     }
 

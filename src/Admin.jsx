@@ -2,14 +2,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from './nav.jsx'
-import { useContent, refresh, applyItem, removeItem, applyCrop, applyProfil, adminCall, tryLogin, isAdmin, logout } from './store.js'
-import { PLACES, RATIOS } from './data.js'
-import { Icon, useTitle, toast, fmt, isUpcoming, slugify, uid, fotos, compressImage, MAX_FOTO, MAX_POST, ratioOf, imgStyle, focusOf, useProfil } from './lib.jsx'
+import { useContent, refresh, applyItem, removeItem, applyCrop, applyProfil, applyOrder, adminCall, tryLogin, isAdmin, logout } from './store.js'
+import { PLACES, RATIOS, stories as defaultStories } from './data.js'
+import { Icon, useTitle, toast, fmt, isUpcoming, slugify, uid, fotos, compressImage, MAX_FOTO, MAX_POST, ratioOf, imgStyle, focusOf, useProfil, byPost, byUrut } from './lib.jsx'
 import { Logo } from './components.jsx'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad']
 const JENIS = ['Umum', 'Muslimah', 'Anak', 'Remaja']
+const SOROTAN_ICONS = ['calendar_month', 'event', 'favorite', 'star', 'article', 'campaign', 'person', 'location_on', 'notifications', 'mail', 'schedule', 'home', 'target', 'check']
+// sorotan bawaan (data.js) → format teks yang diedit di admin
+const storyText = (st) => st.slides.map((s) => [s.title, s.text, s.to ? `link: ${s.to} | ${s.cta || 'Buka'}` : ''].filter(Boolean).join('\n')).join('\n\n')
 const CFG = {
   artikel: {
     label: 'Artikel', icon: 'article', foto: true, max: MAX_FOTO, places: ['beranda', 'artikel', 'cover', 'galeri'], sort: (a, b) => b.tanggal.localeCompare(a.tanggal),
@@ -28,10 +31,24 @@ const CFG = {
   postingan: {
     label: 'Postingan', icon: 'photo_library', foto: true, max: MAX_POST, places: ['grid', 'feed'], noun: 'postingan feed profil',
     title: (x) => (x.caption || '').split('\n')[0].slice(0, 70) || `Postingan ${fmt(x.tanggal)}`,
-    sort: (a, b) => b.tanggal.localeCompare(a.tanggal) || b.id.localeCompare(a.id),
+    // urutan sama persis dengan di profil: disematkan dulu, lalu tanggal terbaru, lalu urutan yang kamu atur dengan panah
+    sort: byPost, reorder: true, canSwap: (a, b) => a.tanggal === b.tanggal && !!a.sematkan === !!b.sematkan,
     sub: (x) => `${fmt(x.tanggal)}${x.lokasi ? ' · ' + x.lokasi : ''} · ${fotos(x).length} foto`,
-    blank: () => ({ id: uid(), tanggal: today(), lokasi: '', caption: '', foto: [], fokus: [] }),
-    fields: [['tanggal', 'Tanggal posting (yang terbaru tampil paling atas)', 'date'], ['lokasi', 'Lokasi (opsional, tampil di bawah nama)', 'text'], ['caption', 'Caption', 'textarea', 6]],
+    blank: () => ({ id: uid(), tanggal: today(), lokasi: '', caption: '', foto: [], fokus: [], sematkan: false, dibuat: Date.now() }),
+    fields: [['tanggal', 'Tanggal posting (tanggal yang sama diurutkan dengan panah ↑↓ di daftar)', 'date'], ['lokasi', 'Lokasi (opsional, tampil di bawah nama)', 'text'], ['caption', 'Caption', 'textarea', 6], ['sematkan', 'Sematkan di paling atas profil (maks 3)', 'check']],
+  },
+  sorotan: {
+    label: 'Sorotan', icon: 'star', sort: byUrut, reorder: true, canSwap: () => true, title: (x) => x.label,
+    sub: (x) => `${(x.slides || '').split(/\n\s*\n/).filter((s) => s.trim()).length} slide`,
+    blank: () => ({ id: uid(), label: '', icon: 'star', slides: '' }),
+    fields: [['label', 'Nama sorotan (tampil di bawah lingkaran)', 'text'], ['icon', 'Ikon', 'select', SOROTAN_ICONS],
+      ['slides', 'Isi slide: pisahkan slide dengan baris kosong. Baris pertama = judul, baris berikutnya = isi. Tambah baris “link: /jadwal | Lihat jadwal” untuk tombol.', 'textarea', 9]],
+  },
+  pengurus: {
+    label: 'Pengurus', icon: 'person', foto: true, max: 1, places: ['pengurus'], sort: byUrut, reorder: true, canSwap: () => true, title: (x) => x.nama,
+    sub: (x) => x.peran || '–',
+    blank: () => ({ id: uid(), nama: '', peran: '', foto: [], fokus: [] }),
+    fields: [['nama', 'Nama', 'text'], ['peran', 'Peran (mis. Ketua, Pemateri tafsir)', 'text']],
   },
   jadwal: {
     label: 'Jadwal', icon: 'calendar_month', sort: (a, b) => HARI.indexOf(a.hari) - HARI.indexOf(b.hari),
@@ -167,7 +184,7 @@ function PhotoPicker({ value, fokus, max, places, crop, onChange }) {
 /* ---------- Pengaturan rasio crop tiap tempat ---------- */
 function CropSettings({ onFail }) {
   const c = useContent()
-  const [d, setD] = useState(() => Object.fromEntries(Object.keys(PLACES).map((p) => [p, ratioOf(c.crop, p)])))
+  const [d, setD] = useState(() => Object.fromEntries(Object.keys(PLACES).filter((p) => !PLACES[p].fixed).map((p) => [p, ratioOf(c.crop, p)])))
   const [busy, setBusy] = useState(false)
   const save = async (val) => {
     setBusy(true)
@@ -177,7 +194,7 @@ function CropSettings({ onFail }) {
   return (
     <div className="cset">
       <p className="muted">Tentukan rasio (bentuk potongan) gambar untuk tiap tempat. Misalnya kartu di Beranda persegi 1:1, tetapi sampul di halaman detail lebar 16:9. Posisi tiap foto bisa diatur lewat tombol <b>crop</b> di editor artikel, acara, dan postingan.</p>
-      {Object.entries(PLACES).map(([k, p]) => {
+      {Object.entries(PLACES).filter(([, p]) => !p.fixed).map(([k, p]) => {
         const [w, h] = d[k].split('/').map(Number)
         return (
           <div className="crow" key={k}>
@@ -189,7 +206,7 @@ function CropSettings({ onFail }) {
       })}
       <div className="actions">
         <button type="button" className="btn" disabled={busy} onClick={() => save(d)}>{busy ? 'Menyimpan…' : 'Simpan pengaturan'}</button>
-        <button type="button" className="btn ghost" disabled={busy} onClick={() => { const def = Object.fromEntries(Object.entries(PLACES).map(([k, p]) => [k, p.def])); setD(def); save(def) }}>Kembalikan bawaan</button>
+        <button type="button" className="btn ghost" disabled={busy} onClick={() => { const def = Object.fromEntries(Object.entries(PLACES).filter(([, p]) => !p.fixed).map(([k, p]) => [k, p.def])); setD(def); save(def) }}>Kembalikan bawaan</button>
       </div>
     </div>
   )
@@ -198,7 +215,7 @@ function CropSettings({ onFail }) {
 /* ---------- Profil: foto, bio, visi, misi, angka pengikut ---------- */
 function ProfilForm({ onFail }) {
   const c = useContent(), p = useProfil(), raw = c.profil || {}
-  const [d, setD] = useState({ foto: p.foto, bio: p.bio, visi: p.visi, misi: p.misi.join('\n'), pengikut: raw.pengikut || '', mengikuti: raw.mengikuti || '' })
+  const [d, setD] = useState({ foto: p.foto, bio: p.bio, visi: p.visi, misi: p.misi.join('\n'), pengikut: raw.pengikut || '', infaq: raw.infaq || '' })
   const [busy, setBusy] = useState(false), [pic, setPic] = useState(false)
   const set = (k) => (e) => setD({ ...d, [k]: e.target.value })
   const pick = async (f) => {
@@ -218,7 +235,7 @@ function ProfilForm({ onFail }) {
   }
   return (
     <form className="card form pform" onSubmit={save}>
-      <p className="muted">Tampil di halaman <b>Profil</b>. Kosongkan Pengikut/Mengikuti agar diambil otomatis dari Instagram.</p>
+      <p className="muted">Tampil di halaman <b>Profil</b>. Jumlah postingan dan kajian rutin dihitung otomatis.</p>
       <div className="plabel">Foto profil <small className="muted">(kosong = logo)</small></div>
       <div className="avrow">
         {d.foto ? <img className="av" src={d.foto} alt="Foto profil" /> : <Logo size={84} />}
@@ -230,8 +247,8 @@ function ProfilForm({ onFail }) {
       <label>Bio<textarea rows="3" maxLength={300} value={d.bio} onChange={set('bio')} /></label>
       <label>Visi<textarea rows="3" maxLength={600} value={d.visi} onChange={set('visi')} /></label>
       <label>Misi (satu poin per baris)<textarea rows="5" value={d.misi} onChange={set('misi')} /></label>
-      <label>Jumlah pengikut (opsional, mis. 1,2K)<input maxLength={12} value={d.pengikut} onChange={set('pengikut')} /></label>
-      <label>Jumlah mengikuti (opsional)<input maxLength={12} value={d.mengikuti} onChange={set('mengikuti')} /></label>
+      <label>Jumlah pengikut Instagram (opsional, mis. 1,2K; kosong = tidak ditampilkan)<input maxLength={12} value={d.pengikut} onChange={set('pengikut')} /></label>
+      <label>Info infaq & donasi (opsional: nama bank, nomor rekening, atas nama. Kosong = kartu tidak tampil)<textarea rows="4" maxLength={500} value={d.infaq} onChange={set('infaq')} /></label>
       <div className="actions"><button className="btn" type="submit" disabled={busy || pic}>{busy ? 'Menyimpan…' : 'Simpan profil'}</button></div>
     </form>
   )
@@ -251,12 +268,14 @@ function Editor({ cfg, item, crop, onSave, onClose }) {
       <form className="sheet editor form" onSubmit={submit}>
         <div className="ed-head"><h2>{item._exists ? 'Edit' : 'Tambah'} {cfg.label.toLowerCase()}</h2>
           <button type="button" className="ib" aria-label="Tutup" onClick={onClose}><Icon n="close" /></button></div>
-        {cfg.fields.map(([k, l, t, x]) => (
+        {cfg.fields.map(([k, l, t, x]) => t === 'check' ? (
+          <label className="checkrow" key={k}><input type="checkbox" checked={!!d[k]} onChange={(e) => setD({ ...d, [k]: e.target.checked })} /><span>{l}</span></label>
+        ) : (
           <label key={k}>{l}
-            {t === 'textarea' ? <textarea rows={x} value={d[k] || ''} onChange={(e) => setD({ ...d, [k]: e.target.value })} required={k === 'isi' || k === 'ringkas'} />
+            {t === 'textarea' ? <textarea rows={x} value={d[k] || ''} onChange={(e) => setD({ ...d, [k]: e.target.value })} required={k === 'isi' || k === 'ringkas' || k === 'slides'} />
               : t === 'select' ? <select value={d[k]} onChange={(e) => setD({ ...d, [k]: e.target.value })}>{x.map((o) => <option key={o}>{o}</option>)}</select>
               : t === 'color' ? <span className="colorrow"><input type="color" value={d[k]} onChange={(e) => setD({ ...d, [k]: e.target.value })} /><code>{d[k]}</code></span>
-              : <input type={t} min={t === 'number' ? 0 : undefined} value={d[k] ?? ''} onChange={(e) => setD({ ...d, [k]: e.target.value })} required={k === 'judul' || t === 'date'} />}
+              : <input type={t} min={t === 'number' ? 0 : undefined} value={d[k] ?? ''} onChange={(e) => setD({ ...d, [k]: e.target.value })} required={k === 'judul' || k === 'label' || k === 'nama' || t === 'date'} />}
           </label>
         ))}
         {cfg.foto && <PhotoPicker value={fotos(d)} fokus={d.fokus || []} max={cfg.max} places={cfg.places} crop={crop} onChange={(foto, fokus) => setD((p) => ({ ...p, foto, fokus }))} />}
@@ -285,6 +304,7 @@ function Dashboard({ onOut }) {
   const save = async (it) => {
     const arr = c[tab] || [], exists = arr.some((x) => x.id === it.id)
     it = { ...it }; delete it._exists
+    if (tab === 'postingan' && it.sematkan && arr.filter((x) => x.sematkan && x.id !== it.id).length >= 3) { toast('Maksimal 3 postingan yang disematkan. Lepas sematan postingan lain dulu.'); return false }
     if (!exists && tab === 'artikel') { const base = slugify(it.judul); let id = base, n = 2; while (arr.some((x) => x.id === id)) id = `${base}-${n++}`; it.id = id }
     try {
       // foto baru (data URL) diunggah dulu ke Redis, item hanya menyimpan tautannya
@@ -295,13 +315,26 @@ function Dashboard({ onOut }) {
       refresh(true); return true
     } catch (e) { fail(e); return false }
   }
+  // geser item satu langkah (↑/↓) → nomor urut disimpan di Redis, dipakai juga oleh halaman publik
+  const move = async (i, dir) => {
+    const j = i + dir
+    if (j < 0 || j >= list.length || (cfg.canSwap && !cfg.canSwap(list[i], list[j]))) return
+    const ids = list.map((x) => x.id); [ids[i], ids[j]] = [ids[j], ids[i]]
+    try { await adminCall('reorder', { kind: tab, ids }); applyOrder(tab, ids); toast('Urutan disimpan'); refresh(true) } catch (e) { fail(e) }
+  }
+  const loadDefaults = async () => {
+    try {
+      for (const [i, st] of defaultStories.entries()) await adminCall('save', { kind: 'sorotan', item: { id: st.id, label: st.label, icon: st.icon, slides: storyText(st), urut: i } })
+      toast('Sorotan bawaan dimuat, silakan diedit'); refresh(true)
+    } catch (e) { fail(e) }
+  }
   const del = async (it) => {
     if (!confirm(`Hapus "${nm(it)}"? Tindakan ini tidak bisa dibatalkan.`)) return
     try { await adminCall('delete', { kind: tab, id: it.id }); removeItem(tab, it.id); toast('Dihapus'); refresh(true) } catch (e) { fail(e) }
   }
   const exp = () => {
-    const a = document.createElement('a'), { jadwal, acara, artikel, postingan, crop, profil } = c
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ jadwal, acara, artikel, postingan, crop, profil }, null, 2)], { type: 'application/json' })); a.download = 'content.json'; a.click(); URL.revokeObjectURL(a.href)
+    const a = document.createElement('a'), { jadwal, acara, artikel, postingan, sorotan, pengurus, crop, profil } = c
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ jadwal, acara, artikel, postingan, sorotan, pengurus, crop, profil }, null, 2)], { type: 'application/json' })); a.download = 'content.json'; a.click(); URL.revokeObjectURL(a.href)
   }
   const imp = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -334,16 +367,22 @@ function Dashboard({ onOut }) {
         {!isCrop && <button className="btn sm add" onClick={() => setEdit(cfg.blank())}><Icon n="add" size={20} />Tambah {cfg.label.toLowerCase()}</button>}
       </div>
       {tab === 'crop' ? <CropSettings key={c.ready ? 'r' : 'l'} onFail={fail} /> : tab === 'profil' ? <ProfilForm key={c.ready ? 'r' : 'l'} onFail={fail} /> : <ul className="arows">
-        {list.map((x) => (
+        {list.map((x, i) => (
           <li key={x.id} className="arow">
             {fotos(x).length > 0 ? <img className="athumb" src={fotos(x)[0]} alt="" /> : tab === 'artikel' && <span className="dot" style={{ background: x.warna }} />}
             <div className="grow"><b>{nm(x)}</b><span className="muted">{cfg.sub(x)}</span></div>
             {tab === 'acara' && <span className="chip soft">{isUpcoming(x.tanggal) ? 'Akan datang' : 'Selesai'}</span>}
+            {tab === 'postingan' && x.sematkan && <span className="chip soft"><Icon n="push_pin" size={14} fill />Disematkan</span>}
+            {cfg.reorder && <>
+              <button className="ib" aria-label={`Naikkan ${nm(x)}`} title={i && (!cfg.canSwap || cfg.canSwap(x, list[i - 1])) ? 'Naikkan' : 'Tidak bisa naik (beda tanggal)'} disabled={!i || (cfg.canSwap && !cfg.canSwap(x, list[i - 1]))} onClick={() => move(i, -1)}><Icon n="arrow_upward" size={20} /></button>
+              <button className="ib" aria-label={`Turunkan ${nm(x)}`} title={i < list.length - 1 && (!cfg.canSwap || cfg.canSwap(x, list[i + 1])) ? 'Turunkan' : 'Tidak bisa turun (beda tanggal)'} disabled={i === list.length - 1 || (cfg.canSwap && !cfg.canSwap(x, list[i + 1]))} onClick={() => move(i, 1)}><Icon n="arrow_downward" size={20} /></button>
+            </>}
             <button className="ib" aria-label={`Edit ${nm(x)}`} onClick={() => setEdit({ ...x, _exists: true })}><Icon n="edit" size={22} /></button>
             <button className="ib danger" aria-label={`Hapus ${nm(x)}`} onClick={() => del(x)}><Icon n="delete" size={22} /></button>
           </li>
         ))}
-        {!list.length && <li className="empty">Belum ada data. Klik “Tambah”.</li>}
+        {!list.length && <li className="empty">{tab === 'sorotan' ? <>Belum ada sorotan buatan admin, jadi situs memakai sorotan bawaan. <button type="button" className="btn sm" onClick={loadDefaults}>Muat sorotan bawaan untuk diedit</button></> : 'Belum ada data. Klik “Tambah”.'}</li>}
+        {cfg.reorder && list.length > 1 && <li className="muted arow-hint">Gunakan panah ↑↓ untuk mengatur urutan{tab === 'postingan' ? ' (hanya bisa di antara postingan bertanggal sama; beda tanggal tetap terbaru di atas)' : ''}.</li>}
       </ul>}
 
       <h2 className="h3">Kirim notifikasi</h2>

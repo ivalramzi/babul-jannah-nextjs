@@ -9,9 +9,6 @@ export const site = {
   instagram: 'https://www.instagram.com/potret.babuljannah/',
   youtube: 'https://www.youtube.com/@babul_jannahtv',
 }
-// Profil (ubah angka pengikut & mengikuti di sini). Jumlah postingan dihitung otomatis dari data acara.
-// pengikut/mengikuti/postingan di bawah hanya cadangan bila data Instagram belum bisa dimuat (normalnya diambil otomatis dari /api/instagram).
-export const profil = { bio: 'Majelis ta’lim untuk semua usia. Ngaji bareng, hati jadi tenang.', pengikut: '–', mengikuti: '–' }
 
 // tone: green | leaf | ink
 export const stories = [
@@ -44,6 +41,7 @@ export const PLACES = {
   cover: { label: 'Detail · sampul', def: '16/9' },
   galeri: { label: 'Detail · galeri foto', def: '4/3' },
   popup: { label: 'Pop-up acara', def: '16/9' },
+  pengurus: { label: 'Pengurus · foto bulat', def: '1/1', fixed: true }, // rasio tetap (tidak muncul di Pengaturan crop)
 }
 export const RATIOS = [['1/1', 'Persegi 1:1'], ['4/5', 'Potret 4:5'], ['3/4', 'Potret 3:4'], ['2/3', 'Potret 2:3'], ['9/16', 'Story 9:16'], ['4/3', 'Lanskap 4:3'], ['3/2', 'Lanskap 3:2'], ['16/9', 'Lebar 16:9'], ['2/1', 'Banner 2:1'], ['21/9', 'Panorama 21:9']]
 

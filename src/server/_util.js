@@ -31,10 +31,13 @@ export function verifyToken(t = '') {
 }
 export const isAuthed = (req) => verifyToken(String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''))
 
-export const KINDS = ['artikel', 'acara', 'jadwal', 'postingan']
-export const MAX_FOTO = { artikel: 4, acara: 4, postingan: 10 }
+export const KINDS = ['artikel', 'acara', 'jadwal', 'postingan', 'sorotan', 'pengurus']
+export const REQUIRED_KINDS = ['artikel', 'acara', 'jadwal'] // jenis lain boleh tidak ada di cadangan lama
+export const ORDERABLE = ['postingan', 'pengurus', 'sorotan']
+export const MAX_FOTO = { artikel: 4, acara: 4, postingan: 10, pengurus: 1 }
+export const SOROTAN_ICONS = ['calendar_month', 'event', 'favorite', 'star', 'article', 'campaign', 'person', 'location_on', 'notifications', 'mail', 'schedule', 'home', 'target', 'check']
 // Tempat gambar tampil (kunci pengaturan crop). Harus sama dengan PLACES di src/data.js
-export const PLACES = ['beranda', 'artikel', 'feed', 'grid', 'cover', 'galeri', 'popup']
+export const PLACES = ['beranda', 'artikel', 'feed', 'grid', 'cover', 'galeri', 'popup', 'pengurus']
 export const RATIO_RE = /^([1-9]|1[0-9]|2[0-1])\/([1-9]|1[0-9]|2[0-1])$/
 const num = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v * 100) / 100)) : d }
 // fokus = array sejajar dengan foto: [{ [tempat]: {x,y,z} }]
@@ -50,13 +53,30 @@ export function cleanCrop(c) {
 }
 export const SAFE_ID = /^[a-zA-Z0-9_-]{1,120}$/
 
-// Profil yang diatur admin (bio, visi, misi, angka pengikut, foto profil)
+// Profil yang diatur admin (bio, visi, misi, jumlah pengikut, infaq, foto profil)
 const str = (v, n) => String(v ?? '').trim().slice(0, n)
 export function cleanProfil(p = {}) {
   return {
     bio: str(p.bio, 300), visi: str(p.visi, 600),
     misi: (Array.isArray(p.misi) ? p.misi : []).map((m) => str(m, 200)).filter(Boolean).slice(0, 8),
-    pengikut: str(p.pengikut, 12), mengikuti: str(p.mengikuti, 12),
+    pengikut: str(p.pengikut, 12), infaq: str(p.infaq, 500),
     foto: /^\/api\/foto\?id=[a-f0-9]{16,40}$/.test(String(p.foto || '')) ? String(p.foto) : '',
   }
+}
+// Isian per jenis item (batas panjang, nilai yang diizinkan)
+export function cleanItem(kind, it) {
+  const o = { ...it }
+  if (kind === 'postingan') {
+    o.caption = str(o.caption, 2200); o.lokasi = str(o.lokasi, 120); o.sematkan = !!o.sematkan
+    if (Number.isFinite(Number(o.urut))) o.urut = Number(o.urut); else delete o.urut
+    if (Number.isFinite(Number(o.dibuat))) o.dibuat = Number(o.dibuat); else delete o.dibuat
+  }
+  if (kind === 'pengurus') { o.nama = str(o.nama, 80); o.peran = str(o.peran, 80); if (Number.isFinite(Number(o.urut))) o.urut = Number(o.urut); else delete o.urut }
+  if (kind === 'sorotan') {
+    o.label = str(o.label, 30); o.slides = str(o.slides, 2500)
+    if (!SOROTAN_ICONS.includes(o.icon)) o.icon = 'star'
+    if (Number.isFinite(Number(o.urut))) o.urut = Number(o.urut); else delete o.urut
+    delete o.foto; delete o.fokus
+  }
+  return o
 }
