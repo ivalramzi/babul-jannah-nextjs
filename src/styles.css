@@ -324,7 +324,6 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
   .post:hover,.card:hover,.tile:hover,.rc:hover,.padd:hover,.gthumb:hover{transform:scale(1.03)}
   .chip:hover,.bell:hover,.ptabs button:hover,.btn.ghost:hover,.story:hover{transform:scale(1.07)}
 }
-}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}html{scroll-behavior:auto}.bar i.run{animation:fill 5s linear forwards!important}}
 
 /* sheet deskripsi (tombol komentar) */
