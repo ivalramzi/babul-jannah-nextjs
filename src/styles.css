@@ -3,7 +3,7 @@
   --green:#0a6b30; --leaf:#bcd97e; --ink:#12251a; --paper:#f4f8ec;
   --card:#fbfdf6; --line:color-mix(in srgb,var(--ink) 12%,transparent);
   --muted:color-mix(in srgb,var(--ink) 66%,var(--paper)); --soft:color-mix(in srgb,var(--leaf) 38%,var(--paper));
-  --bd:1px solid var(--line); --r:24px; --ease:cubic-bezier(.22,1,.36,1);
+  --bd:1px solid var(--line); --bounce:cubic-bezier(.34,1.56,.64,1); --r:24px; --ease:cubic-bezier(.22,1,.36,1);
   --font:"Inter Tight",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0}
@@ -316,12 +316,14 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
   .chip.add{margin-left:0}
   .cover{padding:32px 22px;min-height:220px}
 }
-/* hover: konten membesar sedikit (pop-up), tanpa ganti warna */
+/* hover: konten membesar sedikit dengan efek bouncy (overshoot), tanpa ganti warna */
 @media(hover:hover){
-  .post,.card,.tile{transition:transform .3s var(--ease)}
-  .rc,.chip,.bell,.padd,.ptabs button{transition:transform .3s var(--ease),background-color .25s var(--ease),color .25s var(--ease)}
-  .post:hover,.card:hover,.tile:hover,.rc:hover,.padd:hover,.gthumb:hover{transform:scale(1.025)}
-  .chip:hover,.bell:hover,.ptabs button:hover,.btn.ghost:hover,.story:hover{transform:scale(1.05)}
+  .post,.card,.tile,.gthumb,.story{transition:transform .45s var(--bounce)}
+  .rc,.chip,.bell,.padd,.ptabs button{transition:transform .45s var(--bounce),background-color .25s var(--ease),color .25s var(--ease)}
+  .btn.ghost{transition:transform .45s var(--bounce),background-color .25s var(--ease)}
+  .post:hover,.card:hover,.tile:hover,.rc:hover,.padd:hover,.gthumb:hover{transform:scale(1.03)}
+  .chip:hover,.bell:hover,.ptabs button:hover,.btn.ghost:hover,.story:hover{transform:scale(1.07)}
+}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}html{scroll-behavior:auto}.bar i.run{animation:fill 5s linear forwards!important}}
 
