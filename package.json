@@ -1,0 +1,22 @@
+{
+  "name": "babul-jannah-website",
+  "private": true,
+  "version": "3.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "vapid": "node scripts/vapid.mjs",
+    "hash": "node scripts/hash.mjs"
+  },
+  "dependencies": {
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "web-push": "^3.6.7"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
