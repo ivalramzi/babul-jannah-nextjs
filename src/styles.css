@@ -2,8 +2,8 @@
 :root{
   --green:#0a6b30; --leaf:#bcd97e; --ink:#12251a; --paper:#f4f8ec;
   --card:#fbfdf6; --line:color-mix(in srgb,var(--ink) 12%,transparent);
-  --muted:color-mix(in srgb,var(--ink) 66%,var(--paper)); --soft:color-mix(in srgb,var(--leaf) 38%,var(--paper)); --tint:color-mix(in srgb,var(--leaf) 22%,var(--paper)); --mid:color-mix(in srgb,var(--leaf) 60%,var(--paper));
-  --r:24px; --ease:cubic-bezier(.22,1,.36,1);
+  --muted:color-mix(in srgb,var(--ink) 66%,var(--paper)); --soft:color-mix(in srgb,var(--leaf) 38%,var(--paper));
+  --bd:1px solid var(--line); --r:24px; --ease:cubic-bezier(.22,1,.36,1);
   --font:"Inter Tight",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0}
@@ -16,7 +16,7 @@ button{cursor:pointer}
 /* hilangkan kilatan/sorot sentuh bawaan browser seluler; umpan balik tekan diganti :active halus */
 a,button,label,summary,[role=button],.zone{-webkit-tap-highlight-color:transparent}
 button,a,.chip,.act,.zone{touch-action:manipulation}
-:focus-visible{outline:3px solid color-mix(in srgb,var(--green) 40%,transparent);outline-offset:2px;border-radius:12px}
+:focus-visible{outline:2px solid color-mix(in srgb,var(--green) 45%,transparent);outline-offset:2px;border-radius:12px}
 .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
 .muted{color:var(--muted);font-size:14px}
 .t-green{background:var(--green);color:var(--paper)}
@@ -38,7 +38,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 @media(hover:none),(pointer:coarse){.ball{display:none}}
 
 /* nav */
-.nav{position:sticky;top:0;z-index:20;background:var(--tint)}
+.nav{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
 .nav-in{max-width:1080px;margin:0 auto;padding:0 22px;height:64px;display:flex;align-items:center;gap:6px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.025em;margin-right:auto}
 .logo{display:block;object-fit:contain}
@@ -70,8 +70,8 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .btn:hover{background:color-mix(in srgb,var(--green) 82%,var(--ink))}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.ghost{background:var(--soft);color:var(--green)}
-.btn.ghost:hover{background:var(--mid)}
+.btn.ghost{background:transparent;color:var(--green);border:var(--bd)}
+.btn.ghost:hover{background:var(--soft)}
 .btn.inv{background:var(--paper);color:var(--green)}
 .btn.inv:hover{background:var(--leaf);color:var(--ink)}
 .btn.sm{padding:8px 16px;font-size:14px}
@@ -85,16 +85,16 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .row-h{display:flex;justify-content:space-between;align-items:baseline}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.card{background:var(--tint);border-radius:var(--r);padding:28px}
+.card{background:var(--card);border-radius:var(--r);padding:28px;border:1px solid var(--line)}
 .card h3{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
 .card p{color:var(--muted)}
 .card h3.gap{margin-top:20px}
 .emo{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;margin-bottom:16px}
 .ul{padding-left:20px;color:var(--muted)}.ul li{margin-top:6px}
-.empty{background:var(--tint);border-radius:var(--r);padding:36px;text-align:center;color:var(--muted)}
-.chip{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--soft);border-radius:980px;padding:7px 16px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease),color .25s var(--ease)}
-button.chip:hover{background:var(--mid)}
-.chip.on,button.chip.on:hover{background:var(--green);color:var(--paper)}
+.empty{background:var(--card);border:var(--bd);border-radius:var(--r);padding:36px;text-align:center;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:var(--bd);background:transparent;border-radius:980px;padding:7px 16px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease)}
+button.chip:hover{background:var(--soft)}
+.chip.on,button.chip.on:hover{background:var(--green);border-color:var(--green);color:var(--paper)}
 .chip.soft{border:0;background:var(--soft);color:var(--green);padding:3px 12px;font-size:12px}
 .chip.inv{border:0;background:var(--paper);color:var(--green);padding:5px 14px;font-size:13px}
 .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:center}
@@ -135,7 +135,7 @@ button.chip:hover{background:var(--mid)}
 .vbody p{font-size:19px;opacity:.95}
 
 /* post */
-.post{background:var(--tint);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.post{background:var(--card);border-radius:var(--r);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
 .phead{display:flex;align-items:center;gap:12px;padding:14px 16px}
 .phead b{display:block;line-height:1.2}.phead small{color:var(--muted)}
 .media{position:relative;aspect-ratio:1;display:flex;flex-direction:column;justify-content:flex-end;padding:24px;user-select:none;touch-action:manipulation;overflow:hidden}
@@ -161,11 +161,8 @@ button.chip:hover{background:var(--mid)}
 
 /* kartu baris: jadwal & acara */
 .list,.arows{list-style:none;padding:0;display:grid;gap:14px}
-.rc{display:grid;grid-template-columns:84px 1fr auto;gap:18px;align-items:center;background:var(--tint);border-radius:var(--r);padding:14px 18px 14px 14px;transition:background-color .25s var(--ease)}
-.rc:hover{background:color-mix(in srgb,var(--leaf) 30%,var(--paper))}
-.rc .bell,.rc .chip.soft{background:var(--paper)}
-.rc .bell:hover{background:var(--leaf)}
-.rc .bell.on{background:var(--leaf)}
+.rc{display:grid;grid-template-columns:84px 1fr auto;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px 14px 14px;transition:border-color .25s var(--ease),background-color .25s var(--ease)}
+.rc:hover{background:var(--soft)}
 .day{display:flex;flex-direction:column;align-items:center;justify-content:center;width:84px;height:84px;border-radius:22px;background:var(--green);color:var(--paper)}
 .done .day{background:var(--ink)}
 .day.has-img{color:#fff}
@@ -177,9 +174,9 @@ button.chip:hover{background:var(--mid)}
 .info h3 a:hover{text-decoration:underline}
 .info p{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.bell{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border:0;border-radius:980px;padding:6px 14px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease)}
-.bell:hover{background:var(--mid)}
-.bell.on,.bell.on:hover{background:var(--leaf);color:var(--ink)}
+.bell{display:inline-flex;align-items:center;gap:6px;background:transparent;border:var(--bd);border-radius:980px;padding:6px 14px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease),border-color .25s var(--ease)}
+.bell:hover{background:var(--soft)}
+.bell.on,.bell.on:hover{background:var(--leaf);border-color:var(--leaf);color:var(--ink)}
 .bell.on .ms{animation:ring .6s var(--ease)}
 @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(16deg)}50%{transform:rotate(-12deg)}75%{transform:rotate(6deg)}}
 
@@ -201,12 +198,12 @@ button.chip:hover{background:var(--mid)}
 .h3{font-size:24px;font-weight:800;letter-spacing:-.025em;margin:28px 0 14px}
 .comments{list-style:none;padding:0;display:grid;gap:14px;margin-bottom:20px}
 .comments li{display:flex;gap:12px;align-items:flex-start}
-.comments p{background:var(--tint);border-radius:18px;padding:10px 16px}
+.comments p{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:10px 16px}
 .cform{display:flex;gap:10px}
 .form{display:flex;flex-direction:column;gap:18px}
 .form label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
-.cform input,.form input,.form textarea,.form select{background:var(--soft);border:0;border-radius:16px;padding:12px 16px;width:100%;font-size:16px;font-weight:400;transition:background-color .25s var(--ease)}
-.cform input:focus,.form input:focus,.form textarea:focus,.form select:focus{outline:0;background:var(--mid)}
+.cform input,.form input,.form textarea,.form select{background:var(--card);border:var(--bd);border-radius:16px;padding:12px 16px;width:100%;font-size:16px;font-weight:400;transition:background-color .25s var(--ease)}
+.cform input:focus,.form input:focus,.form textarea:focus,.form select:focus{outline:0;background:var(--soft)}
 .form textarea{resize:vertical}
 .form .btn{align-self:flex-start}
 
@@ -217,9 +214,9 @@ button.chip:hover{background:var(--mid)}
 .stats{display:flex;gap:28px;margin-top:16px}
 .stats div{display:flex;flex-direction:column;line-height:1.2}
 .stats b{font-size:22px;font-weight:800}.stats span{font-size:13px;color:var(--muted)}
-.ptabs{display:flex;justify-content:center;gap:6px;margin-bottom:24px}
+.ptabs{display:flex;justify-content:center;gap:6px;border-top:var(--bd);padding-top:10px;margin-bottom:24px}
 .ptabs button{display:flex;align-items:center;gap:8px;background:none;border:0;border-radius:980px;padding:10px 22px;font-weight:700;color:var(--muted);transition:color .25s var(--ease),background-color .25s var(--ease)}
-.ptabs button:hover{color:var(--ink);background:var(--tint)}
+.ptabs button:hover{color:var(--ink);background:var(--soft)}
 .ptabs button.on{color:var(--green);background:var(--soft)}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .tile{aspect-ratio:1;border:0;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px;transition:transform .3s var(--ease)}
@@ -241,7 +238,7 @@ button.chip:hover{background:var(--mid)}
 .pop-body .ms{color:var(--green)}
 .toast{position:fixed;left:50%;bottom:32px;translate:-50% 0;transform:translateY(24px);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:980px;font-weight:600;font-size:15px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease);z-index:200;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:none}
-.footer{text-align:center;color:var(--muted);font-size:14px;padding:40px 22px 48px;background:var(--tint)}
+.footer{text-align:center;color:var(--muted);font-size:14px;padding:40px 22px 48px;border-top:1px solid var(--line)}
 .footer b{color:var(--ink)}.footer a:hover{color:var(--green);text-decoration:underline}
 
 /* admin */
@@ -266,10 +263,10 @@ button.chip:hover{background:var(--mid)}
 .note .ms{color:var(--green);margin-top:1px}
 .note code,.colorrow code{background:var(--paper);padding:1px 6px;border-radius:6px;font-size:13px}
 .chip.add{margin-left:auto}
-.arow{display:flex;align-items:center;gap:12px;background:var(--tint);border-radius:20px;padding:12px 12px 12px 18px}
+.arow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 12px 12px 18px}
 .arow .grow{flex:1;min-width:0;display:flex;flex-direction:column}
 .arow b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dot{width:18px;height:18px;border-radius:50%;flex:0 0 auto}
+.dot{width:18px;height:18px;border-radius:50%;flex:0 0 auto;border:1px solid var(--line)}
 .editor{padding:24px 24px 28px;gap:16px}
 .ed-head{display:flex;justify-content:space-between;align-items:center}
 .ed-head h2{font-size:24px;font-weight:800;letter-spacing:-.03em;text-transform:capitalize}
@@ -292,12 +289,12 @@ button.chip:hover{background:var(--mid)}
 .photos{display:flex;flex-direction:column;gap:8px}
 .plabel{font-weight:700;font-size:14px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
-.pitem{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;background:var(--soft)}
+.pitem{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--soft)}
 .pitem img{display:block;width:100%;height:100%;object-fit:cover}
 .pbadge{position:absolute;top:8px;left:8px;background:var(--green);color:var(--paper);font-size:11px;font-weight:700;padding:2px 10px;border-radius:980px}
 .pbtns{position:absolute;bottom:6px;right:6px;display:flex;gap:4px}
 .pbtns .ib{width:32px;height:32px;background:rgba(255,255,255,.92);color:var(--ink)}
-.padd{aspect-ratio:1;background:var(--tint);border:0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--green);font-weight:700;font-size:13px;text-align:center;cursor:pointer;transition:background-color .25s var(--ease)}
+.padd{aspect-ratio:1;border:var(--bd);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--green);font-weight:700;font-size:13px;text-align:center;cursor:pointer;transition:background-color .25s var(--ease)}
 .padd:hover{background:var(--soft)}
 .padd.busy{opacity:.6;pointer-events:none}
 .athumb{width:44px;height:44px;border-radius:12px;object-fit:cover;flex:0 0 auto}
@@ -306,9 +303,9 @@ button.chip:hover{background:var(--mid)}
 @media(max-width:820px){
   .links{display:none}
   .nav-in{height:56px}
-  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;transform:translateZ(0);touch-action:manipulation;background:var(--tint);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;transform:translateZ(0);touch-action:manipulation;background:var(--paper);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
   .tabbar a{min-height:48px;justify-content:center;-webkit-tap-highlight-color:transparent;flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:14px;color:var(--muted);font-size:11px;font-weight:700;transition:color .25s var(--ease)}
-  .tabbar a.active{color:var(--green);background:var(--soft)}
+  .tabbar a.active{color:var(--green)}
   .toast{bottom:92px}
   body{padding-bottom:70px}
   .hero{padding-top:36px}
@@ -332,7 +329,7 @@ button.chip:hover{background:var(--mid)}
 .sheet.desc{padding:24px 24px 20px;display:flex;flex-direction:column;gap:12px}
 .sheet.desc .ed-head h2{text-transform:none;font-size:22px;line-height:1.2}
 .dtext{font-size:17px;line-height:1.65}
-.dfoot{margin:6px 0 0;padding-top:8px}
+.dfoot{margin:6px 0 0;border-top:1px solid var(--line);padding-top:8px}
 .dmore{margin-left:auto;padding-right:6px}
 
 /* feed kegiatan ala Instagram */
@@ -381,7 +378,7 @@ button.chip:hover{background:var(--mid)}
 .pitem .pcrop .ib{width:32px;height:32px;background:rgba(255,255,255,.92);color:var(--ink)}
 .cropwrap{width:min(560px,100%);padding:22px 22px 24px;display:flex;flex-direction:column;gap:14px}
 .cropwrap .cframe-box{display:grid;place-items:center;background:var(--soft);border-radius:18px;padding:14px}
-.cframe{position:relative;overflow:hidden;background:var(--ink);border-radius:12px;cursor:grab;touch-action:none;user-select:none}
+.cframe{position:relative;overflow:hidden;background:var(--ink);border-radius:12px;cursor:grab;touch-action:none;user-select:none;border:var(--bd)}
 .cframe:active{cursor:grabbing}
 .cframe img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
 .cframe .grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.35) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.35) 66.6%,transparent 66.8%),linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.35) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.35) 66.6%,transparent 66.8%)}
@@ -389,10 +386,10 @@ button.chip:hover{background:var(--mid)}
 .zoomrow input[type=range]{flex:1;accent-color:var(--green)}
 .cropwrap .chips{margin-bottom:0}
 .cropwrap .chip{font-size:13px;padding:6px 12px}
-.crow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 16px;background:var(--tint);border-radius:18px}
+.crow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:18px}
 .crow b{display:block}
-.crow select{border:0;border-radius:12px;padding:8px 10px;background:var(--soft)}
-.cprev{width:56px;background:var(--leaf);border-radius:6px;justify-self:end}
+.crow select{border:var(--bd);border-radius:12px;padding:8px 10px;background:var(--paper)}
+.cprev{width:56px;background:var(--leaf);border-radius:6px;border:var(--bd);justify-self:end}
 .cset{display:grid;gap:10px;max-width:640px}
 .cset .crow{grid-template-columns:1fr auto 64px}
 
@@ -411,7 +408,7 @@ button.chip:hover{background:var(--mid)}
 .ring.lg .logo.avatar{padding:0;object-fit:cover}
 .pform{max-width:560px;gap:14px}
 .avrow{display:flex;align-items:center;gap:16px}
-.avrow .av{width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--soft);flex:0 0 auto}
+.avrow .av{width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--soft);border:var(--bd);flex:0 0 auto}
 .avrow .btns{display:flex;gap:8px;flex-wrap:wrap}
 
 /* ---------- profil: sorotan, tab Tentang, tim ---------- */
