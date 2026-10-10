@@ -71,7 +71,6 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--green);border:var(--bd)}
-.btn.ghost:hover{background:var(--soft)}
 .btn.inv{background:var(--paper);color:var(--green)}
 .btn.inv:hover{background:var(--leaf);color:var(--ink)}
 .btn.sm{padding:8px 16px;font-size:14px}
@@ -93,8 +92,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .ul{padding-left:20px;color:var(--muted)}.ul li{margin-top:6px}
 .empty{background:var(--card);border:var(--bd);border-radius:var(--r);padding:36px;text-align:center;color:var(--muted)}
 .chip{display:inline-flex;align-items:center;gap:6px;border:var(--bd);background:transparent;border-radius:980px;padding:7px 16px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease)}
-button.chip:hover{background:var(--soft)}
-.chip.on,button.chip.on:hover{background:var(--green);border-color:var(--green);color:var(--paper)}
+.chip.on{background:var(--green);border-color:var(--green);color:var(--paper)}
 .chip.soft{border:0;background:var(--soft);color:var(--green);padding:3px 12px;font-size:12px}
 .chip.inv{border:0;background:var(--paper);color:var(--green);padding:5px 14px;font-size:13px}
 .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:center}
@@ -162,7 +160,6 @@ button.chip:hover{background:var(--soft)}
 /* kartu baris: jadwal & acara */
 .list,.arows{list-style:none;padding:0;display:grid;gap:14px}
 .rc{display:grid;grid-template-columns:84px 1fr auto;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px 14px 14px;transition:border-color .25s var(--ease),background-color .25s var(--ease)}
-.rc:hover{background:var(--soft)}
 .day{display:flex;flex-direction:column;align-items:center;justify-content:center;width:84px;height:84px;border-radius:22px;background:var(--green);color:var(--paper)}
 .done .day{background:var(--ink)}
 .day.has-img{color:#fff}
@@ -175,8 +172,7 @@ button.chip:hover{background:var(--soft)}
 .info p{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .bell{display:inline-flex;align-items:center;gap:6px;background:transparent;border:var(--bd);border-radius:980px;padding:6px 14px;font-weight:700;font-size:14px;transition:background-color .25s var(--ease),border-color .25s var(--ease)}
-.bell:hover{background:var(--soft)}
-.bell.on,.bell.on:hover{background:var(--leaf);border-color:var(--leaf);color:var(--ink)}
+.bell.on{background:var(--leaf);border-color:var(--leaf);color:var(--ink)}
 .bell.on .ms{animation:ring .6s var(--ease)}
 @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(16deg)}50%{transform:rotate(-12deg)}75%{transform:rotate(6deg)}}
 
@@ -216,7 +212,6 @@ button.chip:hover{background:var(--soft)}
 .stats b{font-size:22px;font-weight:800}.stats span{font-size:13px;color:var(--muted)}
 .ptabs{display:flex;justify-content:center;gap:6px;border-top:var(--bd);padding-top:10px;margin-bottom:24px}
 .ptabs button{display:flex;align-items:center;gap:8px;background:none;border:0;border-radius:980px;padding:10px 22px;font-weight:700;color:var(--muted);transition:color .25s var(--ease),background-color .25s var(--ease)}
-.ptabs button:hover{color:var(--ink);background:var(--soft)}
 .ptabs button.on{color:var(--green);background:var(--soft)}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .tile{aspect-ratio:1;border:0;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px;transition:transform .3s var(--ease)}
@@ -295,7 +290,6 @@ button.chip:hover{background:var(--soft)}
 .pbtns{position:absolute;bottom:6px;right:6px;display:flex;gap:4px}
 .pbtns .ib{width:32px;height:32px;background:rgba(255,255,255,.92);color:var(--ink)}
 .padd{aspect-ratio:1;border:var(--bd);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--green);font-weight:700;font-size:13px;text-align:center;cursor:pointer;transition:background-color .25s var(--ease)}
-.padd:hover{background:var(--soft)}
 .padd.busy{opacity:.6;pointer-events:none}
 .athumb{width:44px;height:44px;border-radius:12px;object-fit:cover;flex:0 0 auto}
 
@@ -322,7 +316,15 @@ button.chip:hover{background:var(--soft)}
   .chip.add{margin-left:0}
   .cover{padding:32px 22px;min-height:220px}
 }
-@media(hover:hover){.post,.card,.tile{transition:transform .35s var(--ease)}.post:hover,.card:hover,.tile:hover{transform:translateY(-4px)}.story:hover{transform:translateY(-3px)}}
+/* hover: konten naik sedikit (pop-up), tanpa ganti warna */
+@media(hover:hover){
+  .post,.card,.tile,.itile{transition:transform .3s var(--ease)}
+  .rc,.chip,.bell,.padd,.ptabs button{transition:transform .3s var(--ease),background-color .25s var(--ease),color .25s var(--ease)}
+  .post:hover,.card:hover,.tile:hover,.rc:hover,.padd:hover{transform:translateY(-3px)}
+  .chip:hover,.bell:hover,.ptabs button:hover,.btn.ghost:hover,.story:hover{transform:translateY(-2px)}
+  .itile:hover{transform:scale(1.03);z-index:1}
+  .gthumb:hover{transform:scale(1.03)}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}html{scroll-behavior:auto}.bar i.run{animation:fill 5s linear forwards!important}}
 
 /* sheet deskripsi (tombol komentar) */
@@ -398,7 +400,6 @@ button.chip:hover{background:var(--soft)}
 .itile{position:relative;display:block;width:100%;padding:0;border:0;border-radius:0;overflow:hidden;background:var(--soft);cursor:pointer}
 .itile img{display:block;width:100%;height:100%;object-fit:cover}
 .itile::after{content:"";position:absolute;inset:0;background:rgba(10,20,14,0);transition:background-color .25s var(--ease)}
-@media(hover:hover){.itile:hover::after{background:rgba(10,20,14,.28)}}
 .itype{position:absolute;top:8px;right:8px;z-index:1;color:#fff;display:flex;gap:4px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
 .itext{position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;font-weight:700;font-size:13px;line-height:1.3;overflow:hidden}
 @media(min-width:700px){.igrid{gap:6px}}
