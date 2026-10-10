@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, memo } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from './nav.jsx'
 import { site, stories } from './data.js'
 import { useContent } from './store.js'
@@ -160,7 +161,8 @@ function DescSheet({ kind, id, title, sub, text, to, onClose }) {
     addEventListener('keydown', k); document.body.style.overflow = 'hidden'
     return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
   }, [])
-  return (
+  // Dirender ke <body> lewat portal: kartu .post punya overflow:hidden & transform (hover) yang akan mengurung/memotong overlay fixed.
+  return createPortal(
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Deskripsi" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet desc">
         <div className="ed-head"><h2>{title}</h2><button type="button" className="ib" aria-label="Tutup" autoFocus onClick={onClose}><Icon n="close" /></button></div>
@@ -172,7 +174,8 @@ function DescSheet({ kind, id, title, sub, text, to, onClose }) {
           {to && <Link to={to} className="link dmore" onClick={onClose}>Selengkapnya</Link>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

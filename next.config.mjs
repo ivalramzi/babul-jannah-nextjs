@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  devIndicators: false, // sembunyikan ikon/indikator "N" bawaan Next.js saat mode dev
   serverExternalPackages: ['web-push'],
   async headers() {
     return [
