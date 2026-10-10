@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Young+Serif&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,400,0..1&icon_names=add,add_photo_alternate,arrow_back,arrow_downward,arrow_upward,article,bookmark,calendar_month,campaign,chat_bubble,check,chevron_left,chevron_right,close,crop,delete,download,edit,event,favorite,grid_view,history,home,hourglass_empty,location_on,lock,logout,mail,notifications,notifications_active,person,photo_library,push_pin,restart_alt,schedule,send,star,target,upload,visibility,visibility_off&display=block" rel="stylesheet" />
       </head>
       <body>
