@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import { Link, useParams } from './nav.jsx'
 import { site, profil } from './data.js'
 import { useContent, useInstagram, loadInstagram } from './store.js'
-import { Icon, Head, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
-import { Post, FeedPost, GramPost, IgPost, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
+import { Icon, Head, useProfil, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
+import { Post, FeedPost, PostGrid, IgPost, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
 
 export function Jadwal() {
   const { jadwal, ready } = useContent()
@@ -122,21 +122,22 @@ export function Tentang() {
   const tabs = [['kegiatan', 'grid_view', 'Postingan'], ['visi', 'star', 'Visi'], ['misi', 'target', 'Misi']]
   useTitle('Profil')
   const feed = byDate(acara)
+  const pf = useProfil()
   const gram = [...postingan].sort((x, y) => y.tanggal.localeCompare(x.tanggal) || y.id.localeCompare(x.id)) // dibuat admin
-  useEffect(() => { if (ready && !gram.length) loadInstagram() }, [ready, gram.length])
+  useEffect(() => { if (ready && (!gram.length || !(pf.pengikut && pf.mengikuti))) loadInstagram() }, [ready, gram.length, pf.pengikut, pf.mengikuti])
   const { data: ig, loading: igLoading } = useInstagram()
   const short = (n) => (n == null ? '–' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',').replace(',0', '') + ' jt' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace('.', ',').replace(',0', '') + 'K' : String(n))
-  const stats = gram.length ? [[String(gram.length), 'Postingan'], [ig?.pengikut != null ? short(ig.pengikut) : profil.pengikut, 'Pengikut'], [ig?.mengikuti != null ? short(ig.mengikuti) : profil.mengikuti, 'Mengikuti']]
-    : ig && ig.postingan != null
-    ? [[short(ig.postingan), 'Postingan'], [short(ig.pengikut), 'Pengikut'], [short(ig.mengikuti), 'Mengikuti']]
-    : [[ready ? String(acara.length) : '–', 'Postingan'], [profil.pengikut, 'Pengikut'], [profil.mengikuti, 'Mengikuti']]
+  const posts = gram.length ? String(gram.length) : ig && ig.postingan != null ? short(ig.postingan) : ready ? String(acara.length) : '–'
+  const fol = pf.pengikut || (ig?.pengikut != null ? short(ig.pengikut) : profil.pengikut)
+  const ing = pf.mengikuti || (ig?.mengikuti != null ? short(ig.mengikuti) : profil.mengikuti)
+  const stats = [[posts, 'Postingan'], [fol, 'Pengikut'], [ing, 'Mengikuti']]
   return (
     <div className="wrap page">
       <div className="pro-top">
-        <span className="ring lg"><Logo size={140} /></span>
+        <span className="ring lg">{pf.foto ? <img className="logo avatar" src={pf.foto} alt="" width="140" height="140" decoding="async" /> : <Logo size={140} />}</span>
         <div className="pro-info">
           <h1>{site.nama}</h1>
-          <p>{profil.bio}</p>
+          <p className="bio">{pf.bio}</p>
           <div className="stats">{stats.map(([n, l]) => <div key={l}><b>{n}</b><span>{l}</span></div>)}</div>
           <div className="actions left">
             <a href={site.instagram} target="_blank" rel="noreferrer" className="btn">Ikuti di Instagram</a>
@@ -147,7 +148,7 @@ export function Tentang() {
       <div className="ptabs" role="tablist">
         {tabs.map(([k, ic, l]) => <button type="button" key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Icon n={ic} size={20} fill={tab === k} />{l}</button>)}
       </div>
-      {tab === 'kegiatan' && (gram.length ? <div className="feedcol">{gram.map((p) => <GramPost p={p} key={p.id} />)}</div>
+      {tab === 'kegiatan' && (gram.length ? <PostGrid list={gram} />
         : ig && ig.posts.length ? (
           <div className="feedcol">
             {ig.posts.map((p) => <IgPost p={p} user={ig.username || site.instagramUser} key={p.id} />)}
@@ -157,10 +158,10 @@ export function Tentang() {
         : !ready ? <p className="empty" role="status">Memuat…</p>
         : feed.length ? <div className="feedcol">{feed.map((e, i) => <FeedPost e={e} i={i} key={e.id} />)}</div>
         : <p className="empty">Belum ada kegiatan yang diposting.</p>)}
-      {tab === 'visi' && <div className="card"><h3>Visi</h3><p>Menjadi tempat belajar yang menenangkan dan menumbuhkan kecintaan pada ilmu agama.</p></div>}
+      {tab === 'visi' && <div className="card"><h3>Visi</h3><p className="bio">{pf.visi}</p></div>}
       {tab === 'misi' && (
         <div className="card"><h3>Misi</h3>
-          <ul className="ul"><li>Menyelenggarakan kajian rutin yang mudah dipahami.</li><li>Membina generasi muda lewat TPA dan tahsin.</li><li>Mempererat ukhuwah antarjamaah.</li></ul></div>
+          <ul className="ul">{pf.misi.map((m, i) => <li key={i}>{m}</li>)}</ul></div>
       )}
     </div>
   )

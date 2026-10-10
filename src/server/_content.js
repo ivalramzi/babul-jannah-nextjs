@@ -19,10 +19,10 @@ export async function seedIfEmpty(force = false) {
 
 export async function readAll() {
   await seedIfEmpty()
-  const r = await pipe([...KINDS.map((k) => ['HGETALL', hkey(k)]), ['HGETALL', 'bj:likecount'], ['GET', 'bj:crop']])
+  const r = await pipe([...KINDS.map((k) => ['HGETALL', hkey(k)]), ['HGETALL', 'bj:likecount'], ['GET', 'bj:crop'], ['GET', 'bj:profil']])
   const out = {}
   KINDS.forEach((k, i) => { out[k] = Object.values(toObj(r[i])).map(parse).filter(Boolean) })
-  const lc = toObj(r[KINDS.length]); out.likes = {}; out.crop = parse(r[KINDS.length + 1]) || {}
+  const lc = toObj(r[KINDS.length]); out.likes = {}; out.crop = parse(r[KINDS.length + 1]) || {}; out.profil = parse(r[KINDS.length + 2]) || {}
   for (const [k, v] of Object.entries(lc)) out.likes[k] = Number(v) || 0
   return out
 }

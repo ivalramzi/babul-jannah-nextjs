@@ -34,7 +34,7 @@ export const isAuthed = (req) => verifyToken(String(req.headers.authorization ||
 export const KINDS = ['artikel', 'acara', 'jadwal', 'postingan']
 export const MAX_FOTO = { artikel: 4, acara: 4, postingan: 10 }
 // Tempat gambar tampil (kunci pengaturan crop). Harus sama dengan PLACES di src/data.js
-export const PLACES = ['beranda', 'artikel', 'feed', 'cover', 'galeri', 'popup']
+export const PLACES = ['beranda', 'artikel', 'feed', 'grid', 'cover', 'galeri', 'popup']
 export const RATIO_RE = /^([1-9]|1[0-9]|2[0-1])\/([1-9]|1[0-9]|2[0-1])$/
 const num = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v * 100) / 100)) : d }
 // fokus = array sejajar dengan foto: [{ [tempat]: {x,y,z} }]
@@ -49,3 +49,14 @@ export function cleanCrop(c) {
   return o
 }
 export const SAFE_ID = /^[a-zA-Z0-9_-]{1,120}$/
+
+// Profil yang diatur admin (bio, visi, misi, angka pengikut, foto profil)
+const str = (v, n) => String(v ?? '').trim().slice(0, n)
+export function cleanProfil(p = {}) {
+  return {
+    bio: str(p.bio, 300), visi: str(p.visi, 600),
+    misi: (Array.isArray(p.misi) ? p.misi : []).map((m) => str(m, 200)).filter(Boolean).slice(0, 8),
+    pengikut: str(p.pengikut, 12), mengikuti: str(p.mengikuti, 12),
+    foto: /^\/api\/foto\?id=[a-f0-9]{16,40}$/.test(String(p.foto || '')) ? String(p.foto) : '',
+  }
+}

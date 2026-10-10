@@ -4,10 +4,10 @@ import seed from './content.json'
 /* ---------- Konten (jadwal, acara, artikel) — sumber utama: Redis lewat /api/content ---------- */
 const KEY = 'bj-content-cache-v2'
 const valid = (s) => s && Array.isArray(s.artikel) && Array.isArray(s.acara) && Array.isArray(s.jadwal)
-const EMPTY = { jadwal: [], acara: [], artikel: [], postingan: [], crop: {}, likes: {}, ready: false, offline: false }
+const EMPTY = { jadwal: [], acara: [], artikel: [], postingan: [], crop: {}, profil: {}, likes: {}, ready: false, offline: false }
 const cached = () => { try { const s = JSON.parse(localStorage.getItem(KEY)); return valid(s) ? s : null } catch { return null } }
 const first = cached()
-let state = first ? { ...EMPTY, ...first, postingan: first.postingan || [], crop: first.crop || {}, likes: first.likes || {}, ready: true, offline: false } : EMPTY
+let state = first ? { ...EMPTY, ...first, postingan: first.postingan || [], crop: first.crop || {}, profil: first.profil || {}, likes: first.likes || {}, ready: true, offline: false } : EMPTY
 const subs = new Set()
 const emit = () => subs.forEach((f) => f())
 const set = (n) => { state = n; emit() }
@@ -18,8 +18,8 @@ const touched = {} // key suka yang baru diubah di perangkat ini (jangan ditimpa
 function apply(d) {
   const likes = { ...(d.likes || {}) }
   for (const k in touched) { if (Date.now() - touched[k] < 20000 && k in state.likes) likes[k] = state.likes[k]; else delete touched[k] }
-  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, postingan: d.postingan || [], crop: d.crop || {}, likes }
-  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, postingan: state.postingan, crop: state.crop, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
+  const next = { jadwal: d.jadwal, acara: d.acara, artikel: d.artikel, postingan: d.postingan || [], crop: d.crop || {}, profil: d.profil || {}, likes }
+  if (state.ready && JSON.stringify(next) === JSON.stringify({ jadwal: state.jadwal, acara: state.acara, artikel: state.artikel, postingan: state.postingan, crop: state.crop, profil: state.profil, likes: state.likes })) { if (state.offline) set({ ...state, offline: false }); return }
   try { localStorage.setItem(KEY, JSON.stringify(next)) } catch {}
   set({ ...next, ready: true, offline: false })
 }
@@ -55,6 +55,7 @@ export function applyItem(kind, item) {
   set({ ...state, [kind]: has ? arr.map((x) => (x.id === item.id ? item : x)) : [item, ...arr] })
 }
 export const applyCrop = (crop) => set({ ...state, crop })
+export const applyProfil = (profil) => set({ ...state, profil })
 export function removeItem(kind, id) { set({ ...state, [kind]: state[kind].filter((x) => x.id !== id) }) }
 
 /* ---------- Suka (data nyata, disimpan di Redis) ---------- */

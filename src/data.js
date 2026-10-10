@@ -39,9 +39,17 @@ export const nilai = [
 export const PLACES = {
   beranda: { label: 'Beranda · kartu artikel', def: '1/1' },
   artikel: { label: 'Halaman Artikel · kartu', def: '1/1' },
-  feed: { label: 'Profil · feed postingan', def: '4/5' },
+  grid: { label: 'Profil · kotak grid postingan', def: '3/4' },
+  feed: { label: 'Profil · postingan saat dibuka', def: '4/5' },
   cover: { label: 'Detail · sampul', def: '16/9' },
   galeri: { label: 'Detail · galeri foto', def: '4/3' },
   popup: { label: 'Pop-up acara', def: '16/9' },
 }
 export const RATIOS = [['1/1', 'Persegi 1:1'], ['4/5', 'Potret 4:5'], ['3/4', 'Potret 3:4'], ['2/3', 'Potret 2:3'], ['9/16', 'Story 9:16'], ['4/3', 'Lanskap 4:3'], ['3/2', 'Lanskap 3:2'], ['16/9', 'Lebar 16:9'], ['2/1', 'Banner 2:1'], ['21/9', 'Panorama 21:9']]
+
+// Bawaan profil. Semua bisa diubah dari Admin → Profil (disimpan di Redis).
+export const profilDefault = {
+  bio: 'Majelis ta’lim untuk semua usia. Ngaji bareng, hati jadi tenang.',
+  visi: 'Menjadi tempat belajar yang menenangkan dan menumbuhkan kecintaan pada ilmu agama.',
+  misi: ['Menyelenggarakan kajian rutin yang mudah dipahami.', 'Membina generasi muda lewat TPA dan tahsin.', 'Mempererat ukhuwah antarjamaah.'],
+}

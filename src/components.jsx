@@ -273,6 +273,46 @@ export const GramPost = memo(function GramPost({ p }) {
   )
 })
 
+/* ---------- Grid postingan 3 kolom ala profil Instagram (gambar polos; ketuk untuk membuka postingan) ---------- */
+export function PostGrid({ list }) {
+  const ratio = useRatio('grid')
+  const [open, setOpen] = useState(-1)
+  const isOpen = open >= 0, n = list.length
+  useEffect(() => {
+    if (!isOpen) return
+    const k = (e) => e.key === 'Escape' ? setOpen(-1) : e.key === 'ArrowRight' ? setOpen((x) => (x + 1) % n) : e.key === 'ArrowLeft' ? setOpen((x) => (x - 1 + n) % n) : null
+    addEventListener('keydown', k); document.body.style.overflow = 'hidden'
+    return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
+  }, [isOpen, n])
+  const cur = isOpen ? list[open] : null
+  return (
+    <>
+      <div className="igrid">
+        {list.map((p, i) => {
+          const fl = fotos(p)
+          return (
+            <button type="button" key={p.id} className="itile" style={{ aspectRatio: ratio }} aria-label={`Buka postingan ${i + 1}`} onClick={() => setOpen(i)}>
+              {fl.length ? <img src={fl[0]} style={fit(p, 0, 'grid')} alt="" loading={i < 6 ? 'eager' : 'lazy'} decoding="async" draggable="false" /> : <span className="itext t-green">{(p.caption || '').slice(0, 90)}</span>}
+              {fl.length > 1 && <span className="itype" aria-hidden="true"><Icon n="photo_library" size={20} fill /></span>}
+            </button>
+          )
+        })}
+      </div>
+      {cur && createPortal(
+        <div className="overlay dark" role="dialog" aria-modal="true" aria-label="Postingan" onClick={(e) => e.target === e.currentTarget && setOpen(-1)}>
+          <div className="pview"><GramPost p={cur} key={cur.id} /></div>
+          <button type="button" className="x lb-x" aria-label="Tutup" onClick={() => setOpen(-1)}><Icon n="close" /></button>
+          {n > 1 && <>
+            <button type="button" className="x lb-n l" aria-label="Sebelumnya" onClick={() => setOpen((open - 1 + n) % n)}><Icon n="chevron_left" /></button>
+            <button type="button" className="x lb-n r" aria-label="Berikutnya" onClick={() => setOpen((open + 1) % n)}><Icon n="chevron_right" /></button>
+          </>}
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
 /* ---------- Postingan kegiatan ala feed Instagram (cadangan dari data acara bila admin belum membuat postingan) ---------- */
 export const FeedPost = memo(function FeedPost({ e, i = 0 }) {
   const { liked, count, toggle } = useLike('acara', e.id)

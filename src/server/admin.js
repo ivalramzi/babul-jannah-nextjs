@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 import { hasRedis, cmd, pipe } from './_redis.js'
 import { seedIfEmpty } from './_content.js'
 import { broadcast, pushReady } from './_push.js'
-import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID, MAX_FOTO, cleanFokus, cleanCrop } from './_util.js'
+import { send, readJson, ip, sha256, ADMIN_HASH, makeToken, isAuthed, KINDS, SAFE_ID, MAX_FOTO, cleanFokus, cleanCrop, cleanProfil } from './_util.js'
 
 const fotoId = (url = '') => (/^\/api\/foto\?id=([a-f0-9]{16,40})$/.exec(url) || [])[1]
 const clean = (it) => { const o = { ...it }; delete o._exists; delete o.suka; delete o.komentar; return o }
@@ -75,6 +75,7 @@ export default async function handler(req, res) {
       if (!KINDS.every((k) => Array.isArray(d[k]) || (k === 'postingan' && d[k] === undefined))) return send(res, 400, { error: 'bad_data' }, H)
       const cmds = []
       if (d.crop) cmds.push(['SET', 'bj:crop', JSON.stringify(cleanCrop(d.crop))])
+      if (d.profil) cmds.push(['SET', 'bj:profil', JSON.stringify(cleanProfil(d.profil))])
       for (const k of KINDS) { if (!Array.isArray(d[k])) continue; cmds.push(['DEL', 'bj:' + k]); for (const it of d[k]) if (SAFE_ID.test(String(it.id))) cmds.push(['HSET', 'bj:' + k, it.id, JSON.stringify(clean(it))]) }
       cmds.push(['SET', 'bj:seeded', '1'])
       await pipe(cmds)
@@ -85,6 +86,14 @@ export default async function handler(req, res) {
       const crop = cleanCrop(b.crop)
       await cmd('SET', 'bj:crop', JSON.stringify(crop))
       return send(res, 200, { ok: true, crop }, H)
+    }
+
+    if (b.action === 'profil') {
+      const profil = cleanProfil(b.profil)
+      const old = await cmd('GET', 'bj:profil'), cmds = [['SET', 'bj:profil', JSON.stringify(profil)]]
+      try { const of = fotoId(JSON.parse(old).foto); if (of && of !== fotoId(profil.foto)) cmds.push(['DEL', 'bj:foto:' + of]) } catch {}
+      await pipe(cmds)
+      return send(res, 200, { ok: true, profil }, H)
     }
 
     if (b.action === 'reset') { await seedIfEmpty(true); return send(res, 200, { ok: true }, H) }

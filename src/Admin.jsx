@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from './nav.jsx'
-import { useContent, refresh, applyItem, removeItem, applyCrop, adminCall, tryLogin, isAdmin, logout } from './store.js'
+import { useContent, refresh, applyItem, removeItem, applyCrop, applyProfil, adminCall, tryLogin, isAdmin, logout } from './store.js'
 import { PLACES, RATIOS } from './data.js'
-import { Icon, useTitle, toast, fmt, isUpcoming, slugify, uid, fotos, compressImage, MAX_FOTO, MAX_POST, ratioOf, imgStyle, focusOf } from './lib.jsx'
+import { Icon, useTitle, toast, fmt, isUpcoming, slugify, uid, fotos, compressImage, MAX_FOTO, MAX_POST, ratioOf, imgStyle, focusOf, useProfil } from './lib.jsx'
 import { Logo } from './components.jsx'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -26,7 +26,7 @@ const CFG = {
       ['pemateri', 'Pemateri / panitia', 'text'], ['deskripsi', 'Deskripsi acara', 'textarea', 5], ['laporan', 'Laporan (isi setelah acara selesai)', 'textarea', 5], ['peserta', 'Jumlah peserta', 'number']],
   },
   postingan: {
-    label: 'Postingan', icon: 'photo_library', foto: true, max: MAX_POST, places: ['feed'], noun: 'postingan feed profil',
+    label: 'Postingan', icon: 'photo_library', foto: true, max: MAX_POST, places: ['grid', 'feed'], noun: 'postingan feed profil',
     title: (x) => (x.caption || '').split('\n')[0].slice(0, 70) || `Postingan ${fmt(x.tanggal)}`,
     sort: (a, b) => b.tanggal.localeCompare(a.tanggal) || b.id.localeCompare(a.id),
     sub: (x) => `${fmt(x.tanggal)}${x.lokasi ? ' · ' + x.lokasi : ''} · ${fotos(x).length} foto`,
@@ -195,6 +195,48 @@ function CropSettings({ onFail }) {
   )
 }
 
+/* ---------- Profil: foto, bio, visi, misi, angka pengikut ---------- */
+function ProfilForm({ onFail }) {
+  const c = useContent(), p = useProfil(), raw = c.profil || {}
+  const [d, setD] = useState({ foto: p.foto, bio: p.bio, visi: p.visi, misi: p.misi.join('\n'), pengikut: raw.pengikut || '', mengikuti: raw.mengikuti || '' })
+  const [busy, setBusy] = useState(false), [pic, setPic] = useState(false)
+  const set = (k) => (e) => setD({ ...d, [k]: e.target.value })
+  const pick = async (f) => {
+    if (!f || !f.type.startsWith('image/')) return toast('Pilih file gambar (JPG/PNG/WebP)')
+    setPic(true)
+    try { const url = await compressImage(f, 480, 0.82); setD((x) => ({ ...x, foto: url })) } catch { toast('Foto gagal dibaca') }
+    setPic(false)
+  }
+  const save = async (e) => {
+    e.preventDefault(); setBusy(true)
+    try {
+      const foto = d.foto.startsWith('data:') ? (await adminCall('foto', { dataUrl: d.foto })).url : d.foto
+      const r = await adminCall('profil', { profil: { ...d, foto, misi: d.misi.split('\n').map((m) => m.trim()).filter(Boolean) } })
+      applyProfil(r.profil); setD((x) => ({ ...x, foto: r.profil.foto })); toast('Profil tersimpan'); refresh(true)
+    } catch (er) { onFail(er) }
+    setBusy(false)
+  }
+  return (
+    <form className="card form pform" onSubmit={save}>
+      <p className="muted">Tampil di halaman <b>Profil</b>. Kosongkan Pengikut/Mengikuti agar diambil otomatis dari Instagram.</p>
+      <div className="plabel">Foto profil <small className="muted">(kosong = logo)</small></div>
+      <div className="avrow">
+        {d.foto ? <img className="av" src={d.foto} alt="Foto profil" /> : <Logo size={84} />}
+        <div className="btns">
+          <label className="btn sm ghost"><Icon n="add_photo_alternate" size={18} />{pic ? 'Memproses…' : 'Pilih foto'}<input type="file" accept="image/*" hidden disabled={pic} onChange={(e) => { pick(e.target.files[0]); e.target.value = '' }} /></label>
+          {d.foto && <button type="button" className="btn sm ghost" onClick={() => setD({ ...d, foto: '' })}><Icon n="delete" size={18} />Hapus</button>}
+        </div>
+      </div>
+      <label>Bio<textarea rows="3" maxLength={300} value={d.bio} onChange={set('bio')} /></label>
+      <label>Visi<textarea rows="3" maxLength={600} value={d.visi} onChange={set('visi')} /></label>
+      <label>Misi (satu poin per baris)<textarea rows="5" value={d.misi} onChange={set('misi')} /></label>
+      <label>Jumlah pengikut (opsional, mis. 1,2K)<input maxLength={12} value={d.pengikut} onChange={set('pengikut')} /></label>
+      <label>Jumlah mengikuti (opsional)<input maxLength={12} value={d.mengikuti} onChange={set('mengikuti')} /></label>
+      <div className="actions"><button className="btn" type="submit" disabled={busy || pic}>{busy ? 'Menyimpan…' : 'Simpan profil'}</button></div>
+    </form>
+  )
+}
+
 function Editor({ cfg, item, crop, onSave, onClose }) {
   const [d, setD] = useState(item)
   const [saving, setSaving] = useState(false)
@@ -231,7 +273,7 @@ function Dashboard({ onOut }) {
   const [st, setSt] = useState(null)
   const [bc, setBc] = useState({ title: '', body: '', url: '/' })
   const [sending, setSending] = useState(false)
-  const isCrop = tab === 'crop'
+  const isCrop = tab === 'crop' || tab === 'profil' // tab khusus (bukan daftar item)
   const cfg = CFG[tab] || CFG.artikel
   const list = isCrop ? [] : [...(c[tab] || [])].sort(cfg.sort)
   const nm = (x) => (cfg.title ? cfg.title(x) : x.judul)
@@ -258,8 +300,8 @@ function Dashboard({ onOut }) {
     try { await adminCall('delete', { kind: tab, id: it.id }); removeItem(tab, it.id); toast('Dihapus'); refresh(true) } catch (e) { fail(e) }
   }
   const exp = () => {
-    const a = document.createElement('a'), { jadwal, acara, artikel, postingan, crop } = c
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ jadwal, acara, artikel, postingan, crop }, null, 2)], { type: 'application/json' })); a.download = 'content.json'; a.click(); URL.revokeObjectURL(a.href)
+    const a = document.createElement('a'), { jadwal, acara, artikel, postingan, crop, profil } = c
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ jadwal, acara, artikel, postingan, crop, profil }, null, 2)], { type: 'application/json' })); a.download = 'content.json'; a.click(); URL.revokeObjectURL(a.href)
   }
   const imp = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -287,10 +329,11 @@ function Dashboard({ onOut }) {
       <p className="note"><Icon n="check" size={18} /> Semua perubahan langsung tersimpan di Redis dan tampil untuk seluruh pengunjung, tanpa deploy ulang.{c.offline && <> <b>Server tidak terjangkau, data yang tampil bukan data terbaru.</b></>}</p>
       <div className="chips">
         {Object.entries(CFG).map(([k, v]) => <button key={k} className={tab === k ? 'chip on' : 'chip'} aria-pressed={tab === k} onClick={() => setTab(k)}><Icon n={v.icon} size={18} />{v.label} ({(c[k] || []).length})</button>)}
-        <button className={isCrop ? 'chip on' : 'chip'} aria-pressed={isCrop} onClick={() => setTab('crop')}><Icon n="crop" size={18} />Pengaturan crop</button>
+        <button className={tab === 'crop' ? 'chip on' : 'chip'} aria-pressed={tab === 'crop'} onClick={() => setTab('crop')}><Icon n="crop" size={18} />Pengaturan crop</button>
+        <button className={tab === 'profil' ? 'chip on' : 'chip'} aria-pressed={tab === 'profil'} onClick={() => setTab('profil')}><Icon n="person" size={18} />Profil</button>
         {!isCrop && <button className="btn sm add" onClick={() => setEdit(cfg.blank())}><Icon n="add" size={20} />Tambah {cfg.label.toLowerCase()}</button>}
       </div>
-      {isCrop ? <CropSettings key={c.ready ? 'r' : 'l'} onFail={fail} /> : <ul className="arows">
+      {tab === 'crop' ? <CropSettings key={c.ready ? 'r' : 'l'} onFail={fail} /> : tab === 'profil' ? <ProfilForm key={c.ready ? 'r' : 'l'} onFail={fail} /> : <ul className="arows">
         {list.map((x) => (
           <li key={x.id} className="arow">
             {fotos(x).length > 0 ? <img className="athumb" src={fotos(x)[0]} alt="" /> : tab === 'artikel' && <span className="dot" style={{ background: x.warna }} />}

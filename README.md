@@ -31,6 +31,8 @@ Ekspor/Impor = cadangan JSON. Login diperiksa di server (dibatasi 5 percobaan/me
 - **Admin → Pengaturan crop**: pilih rasio gambar untuk tiap tempat: Beranda (kartu artikel), halaman Artikel (kartu), Profil (feed), Detail (sampul), Detail (galeri), dan Pop-up acara. Contoh: Beranda 1:1, sampul detail 16:9.
 - **Tombol *crop* di tiap foto** (editor artikel/acara/postingan): geser gambar dan atur zoom untuk **tiap tempat secara terpisah**, dengan pratinjau sesuai rasio. Ada tombol *Salin ke semua tempat*.
 - Crop hanya lewat CSS (`aspect-ratio` + `object-position` + zoom), jadi foto asli tidak berubah dan posisi bisa diatur ulang kapan saja. Pengaturan disimpan di Redis (`bj:crop` untuk rasio, `fokus` di tiap item untuk posisi).
+- **Postingan di Profil** tampil sebagai grid 3 kolom (gambar polos, ketuk untuk membuka postingan lengkap). Rasio kotak bawaan 3:4 seperti grid profil Instagram sekarang; bisa diganti ke 1:1 (grid lama) di Pengaturan crop → *Profil · kotak grid postingan*.
+- **Admin → Profil**: foto profil, bio, visi, misi, dan angka pengikut/mengikuti (kosongkan agar otomatis dari Instagram). Disimpan di `bj:profil`.
 - Data baru Redis: `bj:postingan` (hash id→JSON). Ekspor/Impor ikut membawa postingan & pengaturan crop; cadangan lama tanpa postingan tetap bisa diimpor.
 
 ## Notifikasi

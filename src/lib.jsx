@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useContent, sendLike, likeKey } from './store.js'
-import { PLACES } from './data.js'
+import { PLACES, profilDefault } from './data.js'
 
 export function useStored(key, init) {
   const read = () => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init } catch { return init } }
@@ -155,4 +155,14 @@ export async function setReminder(id, on) {
 export async function setAnnounce(on) {
   if (on) return ensurePush(true)
   try { const e = await currentEndpoint(); if (e) { const reg = await navigator.serviceWorker.getRegistration('/sw.js'); const sub = await reg.pushManager.getSubscription(); const s = sub.toJSON(); await post({ action: 'subscribe', sub: s, all: false }) } return { ok: true } } catch { return { ok: false, why: 'error' } }
+}
+
+/* Profil: nilai dari admin (Redis) menimpa bawaan di data.js bila diisi */
+export function useProfil() {
+  const { profil } = useContent(), p = profil || {}
+  return {
+    bio: p.bio || profilDefault.bio, visi: p.visi || profilDefault.visi,
+    misi: p.misi?.length ? p.misi : profilDefault.misi,
+    pengikut: p.pengikut || '', mengikuti: p.mengikuti || '', foto: p.foto || '',
+  }
 }
