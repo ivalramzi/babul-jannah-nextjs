@@ -6,7 +6,7 @@ const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-r
 /* ---------- Animasi keluar untuk overlay/sheet ----------
    Mengembalikan [out, exit]. Pasang class "out" pada .overlay saat out === true;
    callback onClose baru dijalankan setelah animasi keluar selesai (dilewati bila reduced-motion). */
-export function useExit(onClose, ms = 230) {
+export function useExit(onClose, ms = 180) {
   const [out, setOut] = useState(false)
   const fn = useRef(onClose); fn.current = onClose
   const busy = useRef(false), t = useRef(0)
@@ -62,7 +62,7 @@ export function useReveal(ref) {
     const root = ref.current
     if (!root || reduced() || !('IntersectionObserver' in window)) return
     const first = !booted; booted = true
-    const show = (el, n) => { el.style.setProperty('--d', Math.min(n, 8) * 60 + 'ms'); el.dataset.rv = 'in' }
+    const show = (el, n) => { el.style.setProperty('--d', Math.min(n, 8) * 45 + 'ms'); el.dataset.rv = 'in' }
     const io = new IntersectionObserver((es) => {
       let n = 0
       for (const e of es) if (e.isIntersecting) { show(e.target, n++); io.unobserve(e.target) }

@@ -11,7 +11,7 @@ export const metadata = {
   title: { default: 'Babul Jannah — Majelis Ta’lim', template: '%s — Babul Jannah' },
   description: desc,
   manifest: '/manifest.webmanifest',
-  icons: { icon: '/logo-64.png', apple: '/logo-128.png' },
+  icons: { icon: [{ url: '/logo.svg', type: 'image/svg+xml' }, { url: '/logo-64.png', sizes: '64x64', type: 'image/png' }], apple: '/logo-128.png' },
   openGraph: { title: 'Babul Jannah — Majelis Ta’lim', description: desc, images: ['/logo-512.png'], locale: 'id_ID', type: 'website' },
   appleWebApp: { capable: true, title: 'Babul Jannah' },
 }

@@ -469,15 +469,15 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 @keyframes mx-chip{from{transform:scale(.82)}}
 
 /* ---- transisi halaman: masuk dengan spring ---- */
-.route{animation:mx-route .75s var(--spring-soft) backwards}
+.route{animation:mx-route .52s var(--spring-soft) backwards}
 
 /* ---- reveal bertahap (diatur lewat atribut data-rv dari useReveal) ---- */
 [data-rv=wait]{opacity:0;transform:translate3d(0,34px,0) scale(.95)}
-[data-rv=in]{animation:mx-up .8s var(--spring-soft) backwards;animation-delay:var(--d,0ms)}
+[data-rv=in]{animation:mx-up .56s var(--spring-soft) backwards;animation-delay:var(--d,0ms)}
 
 /* ---- navbar ---- */
-.nav{animation:mx-drop .8s var(--spring-soft) backwards}
-.brand .logo{transition:transform .6s var(--spring)}
+.nav{animation:mx-drop .56s var(--spring-soft) backwards}
+.brand .logo{transition:transform .42s var(--spring)}
 @media(hover:hover){.brand:hover .logo{transform:rotate(-10deg) scale(1.12)}}
 .brand:active .logo{transform:scale(.88)}
 .links{position:relative}
@@ -485,129 +485,142 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .links a,.tabbar a{position:relative;z-index:1}
 .links::before,.tabbar::before{content:"";position:absolute;left:0;top:0;width:var(--w,0);height:var(--h,0);border-radius:980px;opacity:var(--o,0);transform:translate3d(var(--x,0),var(--y,0),0);pointer-events:none;z-index:0;display:none}
 .links[data-ind]::before,.tabbar[data-ind]::before{display:block}
-[data-live].links::before,[data-live].tabbar::before{transition:transform .65s var(--spring),width .65s var(--spring),height .4s var(--ease),opacity .3s}
+[data-live].links::before,[data-live].tabbar::before{transition:transform .45s var(--spring),width .45s var(--spring),height .28s var(--ease),opacity .21s}
 /* pill hijau meluncur di belakang menu aktif (desktop) */
 .links::before{background:var(--green)}
 .links[data-ind] a.active,.links[data-ind] a.active:hover{background:transparent;color:var(--paper)}
-.links a .ms{transition:transform .5s var(--spring)}
+.links a .ms{transition:transform .35s var(--spring)}
 .links a:hover .ms{transform:scale(1.2) rotate(-6deg)}
-.links a.active .ms,.tabbar a.active .ms{animation:mx-in .6s var(--spring)}
+.links a.active .ms,.tabbar a.active .ms{animation:mx-in .42s var(--spring)}
 /* pill hijau muda meluncur di belakang tab aktif (mobile) */
 .tabbar::before{background:var(--soft);border-radius:16px}
-.tabbar a{transition:color .25s var(--ease),transform .5s var(--spring)}
+.tabbar a{transition:color .17s var(--ease),transform .35s var(--spring)}
 .tabbar a:active{transform:scale(.88)}
-.adm-btn{transition:background-color .25s var(--ease),transform .5s var(--spring)}
+.adm-btn{transition:background-color .17s var(--ease),transform .35s var(--spring)}
 .adm-btn:active{transform:scale(.85)}
-.adm-btn:hover .ms{animation:mx-wiggle .6s var(--spring)}
-.adm-btn.on .ms{animation:ring .8s var(--spring)}
+.adm-btn:hover .ms{animation:mx-wiggle .42s var(--spring)}
+.adm-btn.on .ms{animation:ring .56s var(--spring)}
 
 /* ---- hero: teks bertahap, kartu membal, blob melayang ---- */
-.hero-text>*{animation:mx-up .9s var(--spring-soft) backwards}
-.hero-text>:nth-child(1){animation:mx-in .9s var(--spring) .05s backwards,mx-bob 5s ease-in-out 1.2s infinite}
-.hero-text>:nth-child(2){animation-delay:.12s}
-.hero-text>:nth-child(3){animation-delay:.22s}
-.hero-text>:nth-child(4){animation-delay:.32s}
-.hero-card{animation:mx-pop 1s var(--spring) .3s backwards}
+.hero-text>*{animation:mx-up .63s var(--spring-soft) backwards}
+.hero-text>:nth-child(1){animation:mx-in .63s var(--spring) .03s backwards,mx-bob 5s ease-in-out .84s infinite}
+.hero-text>:nth-child(2){animation-delay:.08s}
+.hero-text>:nth-child(3){animation-delay:.15s}
+.hero-text>:nth-child(4){animation-delay:.22s}
+.hero-card{animation:mx-pop .7s var(--spring) .21s backwards}
 .blob{animation:mx-float 9s ease-in-out infinite alternate}
 .b2{animation-duration:12s;animation-delay:-4s}
 .hero-text .logo{transform-origin:50% 80%}
 
 /* ---- tombol & chip: tekan = mengecil, lepas = membal ---- */
-.btn{transition:background-color .25s var(--ease),transform .5s var(--spring)}
-.btn:active,.btn:not(.ghost):hover:active,.btn.ghost:hover:active,.chip:hover:active,.bell:hover:active,.story:hover:active{transform:scale(.92);transition-duration:.25s,.12s}
-.chip,.bell{transition:background-color .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease),transform .5s var(--spring)}
+.btn{transition:background-color .17s var(--ease),transform .35s var(--spring)}
+.btn:active,.btn:not(.ghost):hover:active,.btn.ghost:hover:active,.chip:hover:active,.bell:hover:active,.story:hover:active{transform:scale(.92);transition-duration:.17s,.08s}
+.chip,.bell{transition:background-color .17s var(--ease),border-color .17s var(--ease),color .17s var(--ease),transform .35s var(--spring)}
 .chip:active,.bell:active{transform:scale(.92)}
-.chip.on{animation:mx-chip .5s var(--spring)}
+.chip.on{animation:mx-chip .35s var(--spring)}
 @media(hover:hover){.btn:not(.ghost):hover{transform:translate3d(0,-3px,0)}}
-.btn .ms,.link .ms{transition:transform .5s var(--spring)}
+.btn .ms,.link .ms{transition:transform .35s var(--spring)}
 .btn:hover .ms{transform:scale(1.15) rotate(-8deg)}
 .back:hover .ms{transform:translateX(-5px)}
-.row-h .link,.link{transition:transform .5s var(--spring)}
+.row-h .link,.link{transition:transform .35s var(--spring)}
 .row-h .link:hover{transform:translateX(4px);text-decoration:none}
 
 /* ---- kartu, daftar, grid: umpan balik tekan ---- */
-.rc,.card,.post,.tile,.gthumb,.story,.itile{transition:transform .6s var(--spring-soft),border-color .25s var(--ease),background-color .25s var(--ease)}
+.rc,.card,.post,.tile,.gthumb,.story,.itile{transition:transform .42s var(--spring-soft),border-color .17s var(--ease),background-color .17s var(--ease)}
 .rc:active,.card:active,.tile:active,.gthumb:active{transform:scale(.97)}
-.itile{transition:transform .55s var(--spring)}
+.itile{transition:transform .39s var(--spring)}
 .itile:active{transform:scale(.93)}
 @media(hover:hover){.itile:hover{transform:scale(1.03);z-index:1}.itile:hover img{scale:1.08}.post:hover .mimg{scale:1.06}.rc:hover .day{transform:rotate(-4deg) scale(1.05)}}
-.day{transition:transform .6s var(--spring)}
-.mimg,.itile img{transition:scale .8s var(--spring-soft)}
-.cimg{animation:mx-zoom 1.5s var(--ease) backwards}
+.day{transition:transform .42s var(--spring)}
+.mimg,.itile img{transition:scale .56s var(--spring-soft)}
+.cimg{animation:mx-zoom 1.05s var(--ease) backwards}
 
 /* ---- stories ---- */
-.story{animation:mx-in .7s var(--spring) backwards}
-.story:nth-child(2){animation-delay:.06s}.story:nth-child(3){animation-delay:.12s}.story:nth-child(4){animation-delay:.18s}
-.story:nth-child(5){animation-delay:.24s}.story:nth-child(6){animation-delay:.3s}.story:nth-child(n+7){animation-delay:.36s}
-.ring{transition:background-color .3s var(--ease),transform .6s var(--spring)}
+.story{animation:mx-in .49s var(--spring) backwards}
+.story:nth-child(2){animation-delay:.04s}.story:nth-child(3){animation-delay:.08s}.story:nth-child(4){animation-delay:.13s}
+.story:nth-child(5){animation-delay:.17s}.story:nth-child(6){animation-delay:.21s}.story:nth-child(n+7){animation-delay:.25s}
+.ring{transition:background-color .21s var(--ease),transform .42s var(--spring)}
 .story:hover .ring{transform:rotate(8deg) scale(1.06)}
 .story:active .ring{transform:scale(.9)}
 
 /* ---- overlay / sheet / popup / lightbox: buka membal, tutup mengecil ---- */
-.overlay{animation:fade .28s var(--ease)}
-.sheet,.vslide,.lightbox,.pview{animation:mx-pop .65s var(--spring-soft) backwards}
-.overlay.out{animation:mx-fadeout .24s var(--ease) forwards}
-.overlay.out>*{animation:mx-out .24s var(--ease) forwards}
-.x,.ib{transition:background-color .25s var(--ease),transform .5s var(--spring)}
+.overlay{animation:fade .2s var(--ease)}
+.sheet,.vslide,.lightbox,.pview{animation:mx-pop .45s var(--spring-soft) backwards}
+.overlay.out{animation:mx-fadeout .17s var(--ease) forwards}
+.overlay.out>*{animation:mx-out .17s var(--ease) forwards}
+.x,.ib{transition:background-color .17s var(--ease),transform .35s var(--spring)}
 .x:hover{transform:rotate(90deg) scale(1.08)}
 .ib:hover{transform:scale(1.14)}
 .x:active,.ib:active{transform:scale(.85)}
 .lb-n.l:hover{transform:translateX(-4px) scale(1.08)}.lb-n.r:hover{transform:translateX(4px) scale(1.08)}
 .lb-x:hover{transform:rotate(90deg) scale(1.08)}
-.popup .x{animation:mx-in .6s var(--spring) .25s backwards}
-.pop-body>*,.vbody>*{animation:mx-up .7s var(--spring) backwards}
-.pop-body>:nth-child(1),.vbody>:nth-child(1){animation-delay:.12s}
-.pop-body>:nth-child(2),.vbody>:nth-child(2){animation-delay:.18s}
-.pop-body>:nth-child(3),.vbody>:nth-child(3){animation-delay:.24s}
-.pop-body>:nth-child(4),.vbody>:nth-child(4){animation-delay:.3s}
-.vbody{animation:mx-up .6s var(--spring-soft) both}
-.vbody .ms{display:inline-block;animation:mx-in .8s var(--spring) .1s backwards}
-.pop-top h2,.pop-top .chip{animation:mx-up .7s var(--spring) .1s backwards}
+.popup .x{animation:mx-in .42s var(--spring) .17s backwards}
+.pop-body>*,.vbody>*{animation:mx-up .49s var(--spring) backwards}
+.pop-body>:nth-child(1),.vbody>:nth-child(1){animation-delay:.08s}
+.pop-body>:nth-child(2),.vbody>:nth-child(2){animation-delay:.13s}
+.pop-body>:nth-child(3),.vbody>:nth-child(3){animation-delay:.17s}
+.pop-body>:nth-child(4),.vbody>:nth-child(4){animation-delay:.21s}
+.vbody{animation:mx-up .42s var(--spring-soft) both}
+.vbody .ms{display:inline-block;animation:mx-in .56s var(--spring) .07s backwards}
+.pop-top h2,.pop-top .chip{animation:mx-up .49s var(--spring) .07s backwards}
 
 /* ---- aksi suka / simpan / lonceng ---- */
-.act{transition:background-color .25s var(--ease),transform .5s var(--spring)}
+.act{transition:background-color .17s var(--ease),transform .35s var(--spring)}
 .act:active{transform:scale(.8)}
-.act.liked .ms{animation:mx-heart .7s var(--spring)}
-.act.saved .ms{animation:mx-save .6s var(--spring)}
+.act.liked .ms{animation:mx-heart .49s var(--spring)}
+.act.saved .ms{animation:mx-save .42s var(--spring)}
 .act:hover .ms{transform:scale(1.15)}
-.act .ms{transition:transform .5s var(--spring)}
-.bell.on .ms{animation:ring .8s var(--spring)}
-.bump{display:inline-block;animation:mx-bump .55s var(--spring)}
-.burst{animation:burst .9s var(--spring-soft) forwards}
-.cap p.open{animation:mx-up .55s var(--spring) backwards}
+.act .ms{transition:transform .35s var(--spring)}
+.bell.on .ms{animation:ring .56s var(--spring)}
+.bump{display:inline-block;animation:mx-bump .39s var(--spring)}
+.burst{animation:burst .63s var(--spring-soft) forwards}
+.cap p.open{animation:mx-up .39s var(--spring) backwards}
 
 /* ---- carousel feed: titik aktif memanjang ---- */
-.dots i{transition:background-color .25s var(--ease),transform .5s var(--spring),width .5s var(--spring)}
+.dots i{transition:background-color .17s var(--ease),transform .35s var(--spring),width .35s var(--spring)}
 .dots i.on{width:18px;border-radius:6px;transform:none}
-.count{animation:mx-in .5s var(--spring) backwards}
+.count{animation:mx-in .35s var(--spring) backwards}
 
 /* ---- tab profil: pill meluncur ---- */
 .ptabs{position:relative}
 .ptabs button{position:relative;z-index:1}
 .ptabs::before{content:"";position:absolute;left:0;top:0;width:var(--w,0);height:var(--h,0);border-radius:980px;background:var(--soft);opacity:var(--o,0);transform:translate3d(var(--x,0),var(--y,0),0);pointer-events:none;display:none}
 .ptabs[data-ind]::before{display:block}
-.ptabs[data-live]::before{transition:transform .65s var(--spring),width .65s var(--spring),opacity .3s}
+.ptabs[data-live]::before{transition:transform .45s var(--spring),width .45s var(--spring),opacity .21s}
 .ptabs[data-ind] button.on{background:transparent}
-.ptabs button .ms{transition:transform .5s var(--spring)}
-.ptabs button.on .ms{animation:mx-in .6s var(--spring)}
+.ptabs button .ms{transition:transform .35s var(--spring)}
+.ptabs button.on .ms{animation:mx-in .42s var(--spring)}
 
 /* ---- form ---- */
-.cform input,.form input,.form textarea,.form select{transition:background-color .25s var(--ease),transform .5s var(--spring),box-shadow .3s var(--ease)}
+.cform input,.form input,.form textarea,.form select{transition:background-color .17s var(--ease),transform .35s var(--spring),box-shadow .21s var(--ease)}
 .cform input:focus,.form input:focus,.form textarea:focus,.form select:focus{transform:scale(1.015);box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 55%,transparent)}
-.err{animation:mx-up .5s var(--spring) backwards}
-.login{animation:mx-pop .8s var(--spring-soft) backwards}
+.err{animation:mx-up .35s var(--spring) backwards}
+.login{animation:mx-pop .56s var(--spring-soft) backwards}
 
 /* ---- toast ---- */
-.toast{transform:translate3d(0,30px,0) scale(.88);transition:opacity .25s var(--ease),transform .65s var(--spring)}
+.toast{transform:translate3d(0,30px,0) scale(.88);transition:opacity .17s var(--ease),transform .45s var(--spring)}
 .toast.show{transform:none}
 
 /* ---- footer & cta ---- */
-.cta{transition:transform .7s var(--spring-soft)}
+.cta{transition:transform .49s var(--spring-soft)}
 @media(hover:hover){.cta:hover{transform:scale(1.015)}}
-.footer a{transition:color .2s}
+.footer a{transition:color .14s}
 
 /* ---- hormati preferensi "kurangi gerakan" ---- */
 @media(prefers-reduced-motion:reduce){
   [data-rv=wait]{opacity:1;transform:none}
   .blob,.hero-text>:nth-child(1){animation:none!important}
 }
+
+
+/* =====================================================================
+   LOGO (SVG) — warna bisa diganti lewat dua variabel ini
+   ===================================================================== */
+:root{--logo-bg:#016d28;--logo-fg:#ffffb2}
+.logo .lg-bg{fill:var(--logo-bg)}
+.logo .lg-fg{fill:var(--logo-fg)}
+/* logo berbentuk persegi panjang: sesuaikan wadah yang tadinya bulat */
+.ring.lg .logo:not(.avatar){padding:14px}
+.vhead .logo{border-radius:10px;padding:3px}
+.ring.sm{width:auto;height:46px;padding:3px;border-radius:15px}
+.ring.sm .logo{width:auto;height:100%;border-radius:11px;background:none;padding:0}

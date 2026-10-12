@@ -5,10 +5,11 @@ import { Link, NavLink, useLocation } from './nav.jsx'
 import { site } from './data.js'
 import { useContent } from './store.js'
 import { useExit, useSlide, Count } from './motion.jsx'
+import { Logo } from './logo.jsx'
 import { Icon, useStored, toast, toggleIn, tones, fmt, upcoming, daysLeft, inkOn, fotos, useLike, scrollToTop, setReminder, setAnnounce, PUSH_MSG, pushSupported, paras, fit, useRatio, useSorotan } from './lib.jsx'
 
 export { Count }
-export const Logo = ({ size = 40 }) => <img className="logo" src={size > 64 ? '/logo-512.png' : '/logo-128.png'} width={size} height={size} alt="" decoding="async" />
+export { Logo }
 
 /* ---------- Bola pengikut kursor (putih keabu-abuan, blur) (delay halus, hanya jalan saat bergerak) ---------- */
 export function Cursor() {
@@ -207,7 +208,7 @@ export const Post = memo(function Post({ a, i = 0, custom = false, place = 'arti
   const style = { aspectRatio: ratio, ...(fl.length ? null : custom ? { background: a.warna, color: inkOn(a.warna) } : null) }
   return (
     <article className="post">
-      <div className="phead"><Logo size={40} /><div><b>{site.nama}</b><small>{a.penulis}</small></div></div>
+      <div className="phead"><Logo size={34} /><div><b>{site.nama}</b><small>{a.penulis}</small></div></div>
       <div className={fl.length ? 'media has-img' : custom ? 'media' : `media t-${tones[i % 3]}`} style={style} onDoubleClick={dbl}>
         {fl.length > 0 && <><img className="mimg" src={fl[0]} style={fit(a, 0, place)} alt="" loading="lazy" decoding="async" draggable="false" /><span className="shade" /></>}
         <span className="pill">Artikel</span>
