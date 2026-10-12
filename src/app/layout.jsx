@@ -15,7 +15,7 @@ export const metadata = {
   openGraph: { title: 'Babul Jannah — Majelis Ta’lim', description: desc, images: ['/logo-512.png'], locale: 'id_ID', type: 'website' },
   appleWebApp: { capable: true, title: 'Babul Jannah' },
 }
-export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#f4f8ec' }
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#eef2fc' }
 
 export default function RootLayout({ children }) {
   return (

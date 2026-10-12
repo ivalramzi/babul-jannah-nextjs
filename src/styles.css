@@ -1,14 +1,18 @@
-/* Palet (4 warna): hijau tua, hijau muda, tinta, kertas */
+/* Palet (gaya referensi): charcoal, lavender, sky, mint + gradien biru-ungu-pink di atas kanvas pastel */
 :root{
-  --green:#0a6b30; --leaf:#bcd97e; --ink:#12251a; --paper:#f4f8ec;
-  --card:#fbfdf6; --line:color-mix(in srgb,var(--ink) 12%,transparent);
-  --muted:color-mix(in srgb,var(--ink) 66%,var(--paper)); --soft:color-mix(in srgb,var(--leaf) 38%,var(--paper));
+  --green:#1f1f26; --leaf:#d5d2fb; --ink:#17171f; --paper:#f1f4fc;
+  --sky:#cde3f9; --mint:#d8f4c8; --lav:#d5d2fb; --accent:#7b6ef0;
+  --grad:linear-gradient(135deg,#8fc4ee 0%,#9b8ff0 52%,#f4a9c0 100%);
+  --card:rgba(255,255,255,.74); --line:rgba(30,30,60,.09);
+  --muted:color-mix(in srgb,var(--ink) 58%,var(--paper)); --soft:rgba(155,143,240,.14);
+  --shadow:0 10px 32px rgba(108,118,196,.14),0 1px 2px rgba(108,118,196,.08);
+  --glass:blur(18px) saturate(1.3);
   --bd:1px solid var(--line); --bounce:cubic-bezier(.34,1.56,.64,1); --r:24px; --ease:cubic-bezier(.22,1,.36,1);
   --font:"Inter Tight",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0}
 html{-webkit-text-size-adjust:100%}
-body{font-family:var(--font);background:var(--paper);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip;min-height:100vh;min-height:100dvh}
+body{font-family:var(--font);background:transparent;color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip;min-height:100vh;min-height:100dvh}
 html{overflow-x:clip}
 a{color:inherit;text-decoration:none}
 button,input,textarea,select{font:inherit;color:inherit}
@@ -16,7 +20,7 @@ button{cursor:pointer}
 /* hilangkan kilatan/sorot sentuh bawaan browser seluler; umpan balik tekan diganti :active halus */
 a,button,label,summary,[role=button],.zone{-webkit-tap-highlight-color:transparent}
 button,a,.chip,.act,.zone{touch-action:manipulation}
-:focus-visible{outline:2px solid color-mix(in srgb,var(--green) 45%,transparent);outline-offset:2px;border-radius:12px}
+:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px;border-radius:12px}
 .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
 .muted{color:var(--muted);font-size:14px}
 .t-green{background:var(--green);color:var(--paper)}
@@ -34,7 +38,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}}
 
 /* bola kursor: putih keabu-abuan, tembus pandang, background di belakangnya blur */
-.ball{position:fixed;top:0;left:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(226,229,227,.5);-webkit-backdrop-filter:blur(8px) saturate(1.15);backdrop-filter:blur(8px) saturate(1.15);border:1px solid rgba(255,255,255,.6);box-shadow:0 2px 14px rgba(18,37,26,.14);opacity:0;pointer-events:none;z-index:9999;will-change:transform;transition:opacity .25s}
+.ball{position:fixed;top:0;left:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(226,229,227,.5);-webkit-backdrop-filter:blur(8px) saturate(1.15);backdrop-filter:blur(8px) saturate(1.15);border:1px solid rgba(255,255,255,.6);box-shadow:0 2px 14px rgba(24,24,44,.14);opacity:0;pointer-events:none;z-index:9999;will-change:transform;transition:opacity .25s}
 @media(hover:none),(pointer:coarse){.ball{display:none}}
 
 /* nav */
@@ -109,8 +113,8 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .ring.lg .logo{width:100%;height:100%;border-radius:50%;background:var(--paper);padding:6px}
 .av{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--paper);color:var(--green)}
 .av.sm{width:36px;height:36px;font-size:16px;font-weight:800;background:var(--soft);flex:0 0 auto}
-.overlay{position:fixed;inset:0;z-index:100;background:rgba(18,37,26,.55);display:grid;place-items:center;padding:16px;animation:fade .25s var(--ease)}
-.overlay.dark{background:rgba(18,37,26,.85)}
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(24,24,44,.55);display:grid;place-items:center;padding:16px;animation:fade .25s var(--ease)}
+.overlay.dark{background:rgba(24,24,44,.85)}
 .vslide{-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;position:relative;width:min(420px,100%);height:min(760px,100dvh - 32px);border-radius:28px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:96px 28px 40px;user-select:none;touch-action:manipulation;animation:rise .4s var(--ease)}
 @media(max-width:480px){.overlay.dark{padding:0}.vslide{border-radius:0;height:100dvh}}
 .bars{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:5px;z-index:3}
@@ -140,7 +144,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .media h3{font-size:clamp(22px,2.4vw,27px);font-weight:800;line-height:1.12;letter-spacing:-.03em}
 .media.has-img{color:#fff;background:var(--ink)}
 .mimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
-.shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,20,14,.82),rgba(10,20,14,.05) 62%);pointer-events:none}
+.shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(16,16,34,.82),rgba(16,16,34,.05) 62%);pointer-events:none}
 .media>h3{position:relative;z-index:1}
 .pill{z-index:1;position:absolute;top:18px;left:18px;background:var(--paper);color:var(--ink);font-weight:700;font-size:13px;padding:4px 12px;border-radius:980px}
 .burst{z-index:2;position:absolute;inset:0;display:grid;place-items:center;color:var(--paper);pointer-events:none;animation:burst .8s var(--ease) forwards}
@@ -349,7 +353,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .fcard{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:32px;text-align:center}
 .fcard h3{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.12}
 .fcard p{font-weight:600;opacity:.92}
-.count{position:absolute;top:12px;right:12px;background:rgba(18,37,26,.62);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:980px;pointer-events:none}
+.count{position:absolute;top:12px;right:12px;background:rgba(24,24,44,.62);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:980px;pointer-events:none}
 .dots{display:flex;justify-content:center;gap:5px;padding-top:10px}
 .dots i{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background-color .25s var(--ease),transform .25s var(--ease)}
 .dots i.on{background:var(--green);transform:scale(1.25)}
@@ -368,10 +372,10 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 /* ---------- foto ber-crop: lapisan gambar di dalam sampul / kotak tanggal / pop-up ---------- */
 .cover,.day,.pop-top{position:relative}
 .cimgw{position:absolute;inset:0;overflow:hidden;border-radius:inherit;z-index:0;pointer-events:none}
-.cimgw::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,20,14,.15),rgba(10,20,14,.82))}
+.cimgw::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(16,16,34,.15),rgba(16,16,34,.82))}
 .cimg{display:block;width:100%;height:100%;object-fit:cover}
-.day .cimgw::after{background:linear-gradient(rgba(10,20,14,.35),rgba(10,20,14,.72))}
-.pop-top .cimgw::after{background:linear-gradient(rgba(10,45,22,.45),rgba(10,45,22,.9))}
+.day .cimgw::after{background:linear-gradient(rgba(16,16,34,.35),rgba(16,16,34,.72))}
+.pop-top .cimgw::after{background:linear-gradient(rgba(30,26,70,.45),rgba(30,26,70,.9))}
 .cover>*:not(.cimgw),.day>*:not(.cimgw),.pop-top>*:not(.cimgw){position:relative;z-index:1}
 
 /* ---------- admin: atur crop ---------- */
@@ -398,8 +402,8 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;max-width:820px;margin:0 auto}
 .itile{position:relative;display:block;width:100%;padding:0;border:0;border-radius:0;overflow:hidden;background:var(--soft);cursor:pointer}
 .itile img{display:block;width:100%;height:100%;object-fit:cover}
-.itile::after{content:"";position:absolute;inset:0;background:rgba(10,20,14,0);transition:background-color .25s var(--ease)}
-@media(hover:hover){.itile:hover::after{background:rgba(10,20,14,.16)}}
+.itile::after{content:"";position:absolute;inset:0;background:rgba(16,16,34,0);transition:background-color .25s var(--ease)}
+@media(hover:hover){.itile:hover::after{background:rgba(16,16,34,.16)}}
 .itile:nth-child(3n+1){border-top-left-radius:16px;border-bottom-left-radius:16px}
 .itile:nth-child(3n){border-top-right-radius:16px;border-bottom-right-radius:16px}
 .itype{position:absolute;top:8px;right:8px;z-index:1;color:#fff;display:flex;gap:4px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
@@ -437,3 +441,95 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 .checkrow{display:flex;flex-direction:row;align-items:center;gap:10px;font-weight:600;cursor:pointer}
 .checkrow input{width:20px;height:20px;accent-color:var(--green);flex:0 0 auto}
 .arow-hint{list-style:none;padding:6px 4px}
+
+
+/* =====================================================================
+   TEMA PASTEL-GLASS (mengikuti gambar referensi dashboard)
+   Hanya warna, bayangan, blur, dan gradien. Layout, ukuran, dan font tetap.
+   ===================================================================== */
+html{background:var(--paper)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 8% 100%,rgba(248,214,214,.85),transparent 70%),
+    radial-gradient(55% 45% at 100% 0%,rgba(190,200,248,.75),transparent 70%),
+    radial-gradient(50% 40% at 0% 0%,rgba(205,227,249,.8),transparent 70%),
+    linear-gradient(160deg,#e6ecfb 0%,#eef2fc 45%,#f6eff6 100%)}
+
+/* nav kaca */
+.nav{background:rgba(244,246,253,.66);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);border-bottom:1px solid rgba(255,255,255,.7)}
+.links a:hover,.adm-btn:hover,.adm-btn.on{background:rgba(255,255,255,.85);color:var(--ink)}
+.links a.active{background:var(--green);color:#fff;box-shadow:0 6px 16px rgba(31,31,38,.22)}
+.tabbar{background:rgba(244,246,253,.78);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);border-top:1px solid rgba(255,255,255,.7)}
+.tabbar a.active{color:var(--ink)}
+
+/* aksen teks/ikon */
+.link,.facts .ms,.pop-body .ms,.note .ms,.padd,.dmore,.ib:hover,.act.liked,.act.saved,.ptabs button.on,.chip.soft,.av{color:var(--accent)}
+.link,.dmore{color:var(--ink)}
+.av.sm{background:var(--soft)}
+.footer a:hover{color:var(--accent)}
+
+/* tombol */
+.btn{background:var(--green);color:#fff;box-shadow:0 8px 20px rgba(31,31,38,.22)}
+.btn:hover{background:#34343f}
+.btn.ghost{background:rgba(255,255,255,.6);color:var(--ink);border:1px solid rgba(255,255,255,.9);box-shadow:var(--shadow);box-shadow:0 4px 14px rgba(108,118,196,.12)}
+.btn.inv{background:#fff;color:var(--ink);box-shadow:0 8px 20px rgba(20,20,60,.18)}
+.btn.inv:hover{background:var(--lav);color:var(--ink)}
+.chip{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9)}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 6px 16px rgba(31,31,38,.2)}
+.chip.soft{background:var(--soft);border:0}
+.chip.inv{background:rgba(255,255,255,.9);color:var(--ink)}
+.bell{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9)}
+.bell.on{background:var(--lav);border-color:var(--lav);color:var(--ink)}
+.act:hover,.ib:hover{background:rgba(255,255,255,.8)}
+.ptabs button.on{background:rgba(255,255,255,.85);color:var(--ink);box-shadow:var(--shadow)}
+
+/* kartu kaca: putih tembus pandang, tepi terang, bayangan lembut ungu-biru */
+.card,.post,.rc,.arow,.crow,.empty,.comments p,.note{
+  -webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);
+  border:1px solid rgba(255,255,255,.85);box-shadow:var(--shadow)}
+.note{background:rgba(255,255,255,.6)}
+.sheet{background:#fbfbff;box-shadow:0 30px 80px rgba(30,30,80,.28)}
+.overlay{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pitem,.itile,.gthumb{background:var(--soft)}
+.pitem{border:1px solid rgba(255,255,255,.85)}
+.cform input,.form input,.form textarea,.form select,.crow select{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);box-shadow:inset 0 0 0 1px var(--line)}
+.cform input:focus,.form input:focus,.form textarea:focus,.form select:focus{background:#fff;box-shadow:inset 0 0 0 1px var(--accent),0 0 0 4px rgba(123,110,240,.15)}
+.padd{background:rgba(255,255,255,.5);border:1px dashed rgba(123,110,240,.45)}
+.zoomrow input[type=range]{accent-color:var(--accent)}
+.cframe-box{background:var(--soft)}
+
+/* tiga warna pastel dari referensi: lavender, sky, mint (urutan sama dengan tones) */
+.t-green{background:linear-gradient(145deg,#dcdafc,#cfcdf8);color:var(--ink)}
+.t-leaf{background:linear-gradient(145deg,#d6e8fa,#c6defa);color:var(--ink)}
+.t-ink{background:linear-gradient(145deg,#e0f7d2,#d0f0bd);color:var(--ink)}
+.media.t-green,.media.t-leaf,.media.t-ink,.cover.t-green,.cover.t-leaf,.cover.t-ink,.vslide.t-green,.vslide.t-leaf,.vslide.t-ink,.emo{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7)}
+.tile{box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.7)}
+.itext{color:var(--ink)}
+.pill{background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.burst{filter:drop-shadow(0 2px 10px rgba(30,30,70,.4))}
+
+/* cincin story: gradien biru-ungu-pink seperti garis chart */
+.ring{background:var(--grad)}
+.seen .ring{background:var(--line)}
+.ring.lg .logo,.ring.sm .logo{background:#fff}
+
+/* kotak tanggal: ikon gelap seperti di kartu course */
+.day{background:var(--green);color:#fff;box-shadow:0 8px 18px rgba(31,31,38,.2)}
+.done .day{background:#8d90ab}
+.pbadge{background:var(--green);color:#fff}
+.dots i.on{background:var(--accent)}
+
+/* blok gelap: indigo-charcoal bergradien */
+.cta{background:linear-gradient(135deg,#25252f 0%,#3b3770 60%,#5b4fc4 130%);color:#fff;box-shadow:0 24px 60px rgba(60,55,130,.3)}
+.pop-top{background:linear-gradient(135deg,#25252f 0%,#3b3770 60%,#5b4fc4 130%);color:#fff}
+.popup .x{color:#fff}
+.pop-top.has-img{background:var(--ink)}
+
+/* blob hero: pastel lavender-sky dan peach-pink */
+.blob{background:linear-gradient(135deg,#bccaf7,#d9c9f8)}
+.b2{background:linear-gradient(135deg,#f8d9d9,#f7e3ee)}
+
+.toast{background:var(--green);box-shadow:0 12px 30px rgba(30,30,60,.3)}
+.lb-x,.lb-n{color:#fff}
+.footer{border-top:1px solid rgba(255,255,255,.7)}
+.ball{background:rgba(214,214,244,.45);border-color:rgba(255,255,255,.7);box-shadow:0 2px 14px rgba(70,70,150,.18)}
