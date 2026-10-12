@@ -616,7 +616,7 @@ button,a,.chip,.act,.zone{touch-action:manipulation}
 /* =====================================================================
    LOGO (SVG) — warna bisa diganti lewat dua variabel ini
    ===================================================================== */
-:root{--logo-bg:#016d28;--logo-fg:#ffffb2}
+:root{--logo-bg:#016d28;--logo-fg:transparent}
 .logo .lg-bg{fill:var(--logo-bg)}
 .logo .lg-fg{fill:var(--logo-fg)}
 /* logo berbentuk persegi panjang: sesuaikan wadah yang tadinya bulat */
