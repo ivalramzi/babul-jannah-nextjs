@@ -17,7 +17,7 @@ const CFG = {
   artikel: {
     label: 'Artikel', icon: 'article', foto: true, max: MAX_FOTO, places: ['beranda', 'artikel', 'cover', 'galeri'], sort: (a, b) => b.tanggal.localeCompare(a.tanggal),
     sub: (x) => `${x.penulis} · ${fmt(x.tanggal)}`,
-    blank: () => ({ id: uid(), judul: '', penulis: '', tanggal: today(), ringkas: '', isi: '', warna: '#b9f44b', foto: [] }),
+    blank: () => ({ id: uid(), judul: '', penulis: '', tanggal: today(), ringkas: '', isi: '', warna: '#0a6b30', foto: [] }),
     fields: [['judul', 'Judul', 'text'], ['penulis', 'Penulis', 'text'], ['tanggal', 'Tanggal terbit', 'date'], ['warna', 'Warna sampul artikel', 'color'],
       ['ringkas', 'Ringkasan / deskripsi (tampil di kartu & tombol komentar)', 'textarea', 3], ['isi', 'Isi artikel (pisahkan paragraf dengan baris kosong)', 'textarea', 10]],
   },
