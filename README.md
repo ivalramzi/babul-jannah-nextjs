@@ -52,3 +52,12 @@ Ekspor/Impor = cadangan JSON. Login diperiksa di server (dibatasi 5 percobaan/me
 ## Ubah konten lain
 Nama, WhatsApp, alamat, email, tautan sosial: `src/data.js` (bio, visi, misi, sorotan, pengurus, pengikut diatur lewat Admin) · Warna: `:root` di `src/styles.css`.
 
+
+## Micro animasi
+
+Semua animasi memakai kurva spring CSS `linear()` (cadangan: `cubic-bezier` overshoot) tanpa dependensi baru.
+
+- `src/styles.css` (blok "MICRO ANIMASI" di bagian akhir): variabel `--spring` / `--spring-soft`, keyframes `mx-*`.
+- `src/motion.jsx`: `useExit` (animasi tutup overlay), `useSlide` (pill menu yang meluncur), `useReveal` (muncul bertahap saat dimuat/digulir), `Count` (angka suka membal).
+- `src/app/template.jsx`: animasi masuk halaman + `useReveal`.
+- Otomatis nonaktif bila pengguna memilih "kurangi gerakan" di sistemnya.

@@ -4,8 +4,10 @@ import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation } from './nav.jsx'
 import { site } from './data.js'
 import { useContent } from './store.js'
+import { useExit, useSlide, Count } from './motion.jsx'
 import { Icon, useStored, toast, toggleIn, tones, fmt, upcoming, daysLeft, inkOn, fotos, useLike, scrollToTop, setReminder, setAnnounce, PUSH_MSG, pushSupported, paras, fit, useRatio, useSorotan } from './lib.jsx'
 
+export { Count }
 export const Logo = ({ size = 40 }) => <img className="logo" src={size > 64 ? '/logo-512.png' : '/logo-128.png'} width={size} height={size} alt="" decoding="async" />
 
 /* ---------- Bola pengikut kursor (putih keabu-abuan, blur) (delay halus, hanya jalan saat bergerak) ---------- */
@@ -69,6 +71,9 @@ function NotifButton() {
 
 export function Nav() {
   const { pathname } = useLocation()
+  const linksRef = useRef(null), tabsRef = useRef(null)
+  useSlide(linksRef, 'a.active', pathname)
+  useSlide(tabsRef, 'a.active', pathname, 12)
   // Logo: bila sudah di beranda, gulir halus ke cover paling atas; bila di halaman lain, pindah ke beranda (tampil dari atas)
   const toHome = (e) => { if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; if (pathname === '/') { e.preventDefault(); scrollToTop() } }
   return (
@@ -76,14 +81,14 @@ export function Nav() {
       <header className="nav">
         <div className="nav-in">
           <Link to="/" className="brand" onClick={toHome} aria-label="Babul Jannah, ke beranda"><Logo size={40} />{site.nama}</Link>
-          <nav className="links">
+          <nav className="links" ref={linksRef}>
             {menu.map(([to, l, i]) => <NavLink key={to} to={to} end={to === '/'}><Icon n={i} size={20} />{l}</NavLink>)}
           </nav>
           <NotifButton />
           <Link to="/admin" className="adm-btn" aria-label="Login admin"><Icon n="lock" size={20} /></Link>
         </div>
       </header>
-      <nav className="tabbar" aria-label="Menu utama">
+      <nav className="tabbar" aria-label="Menu utama" ref={tabsRef}>
         {menu.filter((m) => m[0] !== '/kontak').map(([to, l, i]) => <NavLink key={to} to={to} end={to === '/'} onClick={(e) => { if (pathname === to) { e.preventDefault(); scrollToTop() } }}><Icon n={i} size={26} /><span>{l}</span></NavLink>)}
       </nav>
     </>
@@ -96,20 +101,22 @@ export function Stories() {
   const [open, setOpen] = useState(null)
   const [seen, setSeen] = useStored('bj-seen', [])
   const [paused, setPaused] = useState(false)
+  const [out, exit] = useExit(() => setOpen(null))
+  const exitRef = useRef(exit); exitRef.current = exit
   const show = (g, s = 0) => { setOpen({ g, s }); setSeen((x) => (x.includes(stories[g].id) ? x : [...x, stories[g].id])) }
   const go = (d) => {
     let { g, s } = open
     s += d
     if (s >= stories[g].slides.length) { g++; s = 0 } else if (s < 0) { g--; s = g >= 0 ? stories[g].slides.length - 1 : 0 }
     if (g < 0) { g = 0; s = 0 }
-    if (g >= stories.length) return setOpen(null)
+    if (g >= stories.length) return exit()
     show(g, s)
   }
   const goRef = useRef(go); goRef.current = go
   const isOpen = !!open
   useEffect(() => {
     if (!isOpen) return
-    const k = (e) => e.key === 'Escape' ? setOpen(null) : e.key === 'ArrowRight' ? goRef.current(1) : e.key === 'ArrowLeft' ? goRef.current(-1) : null
+    const k = (e) => e.key === 'Escape' ? exitRef.current() : e.key === 'ArrowRight' ? goRef.current(1) : e.key === 'ArrowLeft' ? goRef.current(-1) : null
     addEventListener('keydown', k)
     document.body.style.overflow = 'hidden'
     return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
@@ -128,7 +135,7 @@ export function Stories() {
         ))}
       </div>
       {open && (
-        <div className="overlay dark" role="dialog" aria-label={cur.label}>
+        <div className={out ? 'overlay dark out' : 'overlay dark'} role="dialog" aria-label={cur.label}>
           <div className={`vslide t-${slide.tone}`} onContextMenu={(e) => e.preventDefault()} onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)} onPointerLeave={() => setPaused(false)}>
             <div className="bars">
               {cur.slides.map((_, i) => (
@@ -139,7 +146,7 @@ export function Stories() {
               ))}
             </div>
             <div className="vhead"><Logo size={36} /><b>{site.nama}</b>
-              <button className="x" aria-label="Tutup" onClick={() => setOpen(null)}><Icon n="close" /></button></div>
+              <button className="x" aria-label="Tutup" onClick={exit}><Icon n="close" /></button></div>
             <button type="button" className="zone l" aria-label="Sebelumnya" onClick={() => go(-1)} />
             <button type="button" className="zone r" aria-label="Berikutnya" onClick={() => go(1)} />
             <div className="vbody" key={`${open.g}-${open.s}`}>
@@ -158,21 +165,23 @@ export function Stories() {
 /* ---------- Sheet deskripsi (tombol komentar): hanya deskripsi dan suka, tanpa komentar ---------- */
 function DescSheet({ kind, id, title, sub, text, to, onClose }) {
   const { liked, count, toggle } = useLike(kind, id)
+  const [out, exit] = useExit(onClose)
+  const exitRef = useRef(exit); exitRef.current = exit
   useEffect(() => {
-    const k = (e) => e.key === 'Escape' && onClose()
+    const k = (e) => e.key === 'Escape' && exitRef.current()
     addEventListener('keydown', k); document.body.style.overflow = 'hidden'
     return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
   }, [])
   // Dirender ke <body> lewat portal: kartu .post punya overflow:hidden & transform (hover) yang akan mengurung/memotong overlay fixed.
   return createPortal(
-    <div className="overlay" role="dialog" aria-modal="true" aria-label="Deskripsi" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={out ? 'overlay out' : 'overlay'} role="dialog" aria-modal="true" aria-label="Deskripsi" onClick={(e) => e.target === e.currentTarget && exit()}>
       <div className="sheet desc">
-        <div className="ed-head"><h2>{title}</h2><button type="button" className="ib" aria-label="Tutup" autoFocus onClick={onClose}><Icon n="close" /></button></div>
+        <div className="ed-head"><h2>{title}</h2><button type="button" className="ib" aria-label="Tutup" autoFocus onClick={exit}><Icon n="close" /></button></div>
         {sub && <p className="muted">{sub}</p>}
         {paras(text).map((p, i) => <p className="dtext" key={i}>{p}</p>)}
         <div className="acts flat dfoot">
           <button type="button" className={liked ? 'act liked' : 'act'} onClick={toggle} aria-pressed={liked} aria-label="Suka"><Icon n="favorite" fill={liked} /></button>
-          <b>{count} suka</b>
+          <Count n={count} />
           {to && <Link to={to} className="link dmore" onClick={onClose}>Selengkapnya</Link>}
         </div>
       </div>
@@ -213,7 +222,7 @@ export const Post = memo(function Post({ a, i = 0, custom = false, place = 'arti
           onClick={() => { toggleIn(setSaved, a.id); toast(sv ? 'Dihapus dari simpanan' : 'Disimpan') }}><Icon n="bookmark" fill={sv} /></button>
       </div>
       <div className="cap">
-        <b>{count} suka</b>
+        <Count n={count} />
         <p>{a.ringkas}</p>
         <Link to={`/artikel/${a.id}`} className="muted">Baca selengkapnya</Link>
         <small>{fmt(a.tanggal)}</small>
@@ -265,8 +274,8 @@ export const GramPost = memo(function GramPost({ p }) {
         <button type="button" className="act" onClick={() => sharePost(site.nama, '/tentang')} aria-label="Bagikan"><Icon n="send" /></button>
       </div>
       <div className="cap">
-        <b>{count} suka</b>
-        {text && <p className={more ? '' : 'clamp'}><b>{site.nama}</b> {text.replace(/\n+/g, ' ')}</p>}
+        <Count n={count} />
+        {text && <p className={more ? 'open' : 'clamp'}><b>{site.nama}</b> {text.replace(/\n+/g, ' ')}</p>}
         {!more && text.length > 110 && <button type="button" className="more" onClick={() => setMore(true)}>selengkapnya</button>}
         <small>{fmt(p.tanggal)}{p.lokasi ? ` · ${p.lokasi}` : ''}</small>
       </div>
@@ -280,9 +289,11 @@ export function PostGrid({ list }) {
   const ratio = useRatio('grid')
   const [open, setOpen] = useState(-1)
   const isOpen = open >= 0, n = list.length
+  const [out, exit] = useExit(() => setOpen(-1))
+  const exitRef = useRef(exit); exitRef.current = exit
   useEffect(() => {
     if (!isOpen) return
-    const k = (e) => e.key === 'Escape' ? setOpen(-1) : e.key === 'ArrowRight' ? setOpen((x) => (x + 1) % n) : e.key === 'ArrowLeft' ? setOpen((x) => (x - 1 + n) % n) : null
+    const k = (e) => e.key === 'Escape' ? exitRef.current() : e.key === 'ArrowRight' ? setOpen((x) => (x + 1) % n) : e.key === 'ArrowLeft' ? setOpen((x) => (x - 1 + n) % n) : null
     addEventListener('keydown', k); document.body.style.overflow = 'hidden'
     return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
   }, [isOpen, n])
@@ -301,9 +312,9 @@ export function PostGrid({ list }) {
         })}
       </div>
       {cur && createPortal(
-        <div className="overlay dark" role="dialog" aria-modal="true" aria-label="Postingan" onClick={(e) => e.target === e.currentTarget && setOpen(-1)}>
-          <div className="pview"><GramPost p={cur} key={cur.id} /></div>
-          <button type="button" className="x lb-x" aria-label="Tutup" onClick={() => setOpen(-1)}><Icon n="close" /></button>
+        <div className={out ? 'overlay dark out' : 'overlay dark'} role="dialog" aria-modal="true" aria-label="Postingan" onClick={(e) => e.target === e.currentTarget && exit()}>
+          <div className="pview" key={cur.id}><GramPost p={cur} /></div>
+          <button type="button" className="x lb-x" aria-label="Tutup" onClick={exit}><Icon n="close" /></button>
           {n > 1 && <>
             <button type="button" className="x lb-n l" aria-label="Sebelumnya" onClick={() => setOpen((open - 1 + n) % n)}><Icon n="chevron_left" /></button>
             <button type="button" className="x lb-n r" aria-label="Berikutnya" onClick={() => setOpen((open + 1) % n)}><Icon n="chevron_right" /></button>
@@ -384,6 +395,7 @@ export function EventPopup() {
   const [show, setShow] = useState(false)
   const ratio = useRatio('popup')
   const id = e?.id
+  const [out, exit] = useExit(() => setShow(false))
   useEffect(() => {
     let seen = false
     try { seen = !!sessionStorage.getItem('bj-pop-' + id) } catch {}
@@ -391,7 +403,7 @@ export function EventPopup() {
     const t = setTimeout(() => setShow(true), 900)
     return () => clearTimeout(t)
   }, [id])
-  const close = () => { try { sessionStorage.setItem('bj-pop-' + id, '1') } catch {} setShow(false) }
+  const close = () => { try { sessionStorage.setItem('bj-pop-' + id, '1') } catch {} exit() }
   useEffect(() => {
     if (!show) return
     const k = (ev) => ev.key === 'Escape' && close()
@@ -401,7 +413,7 @@ export function EventPopup() {
   }, [show])
   if (!show || !e) return null
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label="Acara akan datang" onClick={(ev) => ev.target === ev.currentTarget && close()}>
+    <div className={out ? 'overlay out' : 'overlay'} role="dialog" aria-modal="true" aria-label="Acara akan datang" onClick={(ev) => ev.target === ev.currentTarget && close()}>
       <div className="sheet popup">
         <button className="x light" autoFocus aria-label="Tutup" onClick={close}><Icon n="close" /></button>
         <div className={fotos(e).length ? 'pop-top has-img' : 'pop-top'} style={fotos(e).length ? { aspectRatio: ratio } : undefined}>
@@ -428,9 +440,11 @@ export function Gallery({ item, from = 1, title = 'Galeri foto' }) {
   const list = fotos(item).slice(from)
   const ratio = useRatio('galeri')
   const [i, setI] = useState(-1)
+  const [out, exit] = useExit(() => setI(-1))
+  const exitRef = useRef(exit); exitRef.current = exit
   useEffect(() => {
     if (i < 0) return
-    const k = (e) => e.key === 'Escape' ? setI(-1) : e.key === 'ArrowRight' ? setI((x) => (x + 1) % list.length) : e.key === 'ArrowLeft' ? setI((x) => (x - 1 + list.length) % list.length) : null
+    const k = (e) => e.key === 'Escape' ? exitRef.current() : e.key === 'ArrowRight' ? setI((x) => (x + 1) % list.length) : e.key === 'ArrowLeft' ? setI((x) => (x - 1 + list.length) % list.length) : null
     addEventListener('keydown', k); document.body.style.overflow = 'hidden'
     return () => { removeEventListener('keydown', k); document.body.style.overflow = '' }
   }, [i, list.length])
@@ -442,9 +456,9 @@ export function Gallery({ item, from = 1, title = 'Galeri foto' }) {
         {list.map((src, n) => <button key={n} className="gthumb" style={{ aspectRatio: ratio }} aria-label={`Buka foto ${n + 1}`} onClick={() => setI(n)}><img src={src} style={fit(item, from + n, 'galeri')} alt="" loading="lazy" decoding="async" /></button>)}
       </div>
       {i >= 0 && (
-        <div className="overlay dark" role="dialog" aria-modal="true" aria-label="Foto" onClick={(e) => e.target === e.currentTarget && setI(-1)}>
-          <img className="lightbox" src={list[i]} alt="" />
-          <button className="x lb-x" aria-label="Tutup" onClick={() => setI(-1)}><Icon n="close" /></button>
+        <div className={out ? 'overlay dark out' : 'overlay dark'} role="dialog" aria-modal="true" aria-label="Foto" onClick={(e) => e.target === e.currentTarget && exit()}>
+          <img className="lightbox" key={i} src={list[i]} alt="" />
+          <button className="x lb-x" aria-label="Tutup" onClick={exit}><Icon n="close" /></button>
           {list.length > 1 && <>
             <button className="x lb-n l" aria-label="Sebelumnya" onClick={() => setI((i - 1 + list.length) % list.length)}><Icon n="chevron_left" /></button>
             <button className="x lb-n r" aria-label="Berikutnya" onClick={() => setI((i + 1) % list.length)}><Icon n="chevron_right" /></button>

@@ -1,15 +1,18 @@
 'use client'
-import { Suspense } from 'react'
+import { Suspense, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { Boundary } from '../shell.jsx'
+import { useReveal } from '../motion.jsx'
 
 // Hanya <main> yang diganti saat pindah halaman (navbar, tab bar & footer ada di layout, tidak dipasang ulang).
-// Transisinya cukup fade singkat pada <main>, tanpa garis progres dan tanpa animasi ulang tiap elemen,
-// supaya perpindahan halaman tidak terasa seperti memuat ulang.
+// Template dibuat ulang tiap navigasi, jadi animasi masuk .route (spring: naik + sedikit membal) berjalan otomatis.
+// Isi halaman muncul bertahap lewat useReveal (stagger + reveal saat digulir), bukan memuat ulang seluruh halaman.
 export default function Template({ children }) {
   const pathname = usePathname()
+  const ref = useRef(null)
+  useReveal(ref)
   return (
-    <main className="route">
+    <main className="route" ref={ref}>
       <Boundary path={pathname}>
         <Suspense fallback={<div className="wrap page" />}>{children}</Suspense>
       </Boundary>

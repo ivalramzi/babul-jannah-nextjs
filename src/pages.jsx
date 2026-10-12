@@ -1,10 +1,11 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Link, useParams } from './nav.jsx'
 import { site } from './data.js'
 import { useContent } from './store.js'
 import { Icon, Head, useProfil, sortPosts, byUrut, fit, useTitle, useStored, useLike, Loading, toast, tones, fmt, upcoming, past, byDate, inkOn, paras, daysLeft, fotos } from './lib.jsx'
-import { Post, PostGrid, Stories, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
+import { useSlide } from './motion.jsx'
+import { Count, Post, PostGrid, Stories, JadwalCard, EventCard, Logo, Gallery, Cover } from './components.jsx'
 
 export function Jadwal() {
   const { jadwal, ready } = useContent()
@@ -110,7 +111,7 @@ export function ArtikelDetail() {
       <Gallery item={a} />
       <div className="acts flat">
         <button type="button" className={liked ? 'act liked' : 'act'} onClick={toggle} aria-pressed={liked} aria-label="Suka"><Icon n="favorite" fill={liked} /></button>
-        <b>{count} suka</b>
+        <Count n={count} />
       </div>
     </article>
   )
@@ -121,6 +122,8 @@ const initials = (n = '') => n.replace(/^(ust\.?|ustadz|ustadzah|ustz\.?|kh\.?|h
 
 export function Tentang() {
   const [tab, setTab] = useState('postingan')
+  const tabsRef = useRef(null)
+  useSlide(tabsRef, 'button.on', tab)
   const { postingan, jadwal, pengurus, ready } = useContent()
   const pf = useProfil()
   useTitle('Profil')
@@ -151,7 +154,7 @@ export function Tentang() {
         </div>
       </div>
       <div className="pro-hl"><Stories /></div>
-      <div className="ptabs" role="tablist">
+      <div className="ptabs" role="tablist" ref={tabsRef}>
         {tabs.map(([k, ic, l]) => <button type="button" key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Icon n={ic} size={20} fill={tab === k} />{l}</button>)}
       </div>
       {tab === 'postingan' && (gram.length ? <PostGrid list={gram} />
