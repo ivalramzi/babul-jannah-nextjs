@@ -35,7 +35,7 @@ export const daysLeft = (iso) => {
 export const upcoming = (a) => a.filter((e) => isUpcoming(e.tanggal)).sort((x, y) => x.tanggal.localeCompare(y.tanggal))
 export const past = (a) => a.filter((e) => !isUpcoming(e.tanggal)).sort((x, y) => y.tanggal.localeCompare(x.tanggal))
 export const byDate = (a) => [...a].sort((x, y) => y.tanggal.localeCompare(x.tanggal))
-export const inkOn = (hex) => { const n = parseInt((hex || '#d5d2fb').slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150 ? '#17171f' : '#f1f4fc' }
+export const inkOn = (hex) => { const n = parseInt((hex || '#b9f44b').slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150 ? '#10170a' : '#f4f4f2' }
 export const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item'
 export const uid = () => Math.random().toString(36).slice(2, 9)
 export const fotos = (x) => (Array.isArray(x?.foto) ? x.foto.filter(Boolean) : [])

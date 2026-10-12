@@ -197,7 +197,8 @@ export const Post = memo(function Post({ a, i = 0, custom = false, place = 'arti
   const fl = fotos(a)
   const style = { aspectRatio: ratio, ...(fl.length ? null : custom ? { background: a.warna, color: inkOn(a.warna) } : null) }
   return (
-    <article className="post">
+    <article className="post notch">
+      <Link to={`/artikel/${a.id}`} className="nb" aria-label={`Baca artikel: ${a.judul}`}><Icon n="north_east" size={22} /></Link>
       <div className="phead"><Logo size={40} /><div><b>{site.nama}</b><small>{a.penulis}</small></div></div>
       <div className={fl.length ? 'media has-img' : custom ? 'media' : `media t-${tones[i % 3]}`} style={style} onDoubleClick={dbl}>
         {fl.length > 0 && <><img className="mimg" src={fl[0]} style={fit(a, 0, place)} alt="" loading="lazy" decoding="async" draggable="false" /><span className="shade" /></>}
@@ -361,7 +362,8 @@ export const JadwalCard = memo(function JadwalCard({ j }) {
 /* ---------- Kartu acara ---------- */
 export const EventCard = memo(function EventCard({ e, done }) {
   return (
-    <li className={done ? 'rc done' : 'rc'}>
+    <li className={done ? 'rc notch done' : 'rc notch'}>
+      <Link to={`/acara/${e.id}`} className="nb" aria-label={`${done ? 'Lihat laporan' : 'Detail acara'}: ${e.judul}`} title={done ? 'Lihat laporan' : 'Detail'}><Icon n="north_east" size={22} /></Link>
       <div className={fotos(e).length ? 'day has-img' : 'day'}>{fotos(e).length > 0 && <div className="cimgw"><img className="cimg" src={fotos(e)[0]} style={fit(e, 0, 'cover')} alt="" loading="lazy" decoding="async" /></div>}<b>{fmt(e.tanggal, { day: 'numeric' })}</b><span>{fmt(e.tanggal, { month: 'short' })}</span></div>
       <div className="info">
         <span className="chip soft"><Icon n={done ? 'history' : 'event'} size={14} />{done ? 'Selesai' : daysLeft(e.tanggal)}</span>
@@ -371,7 +373,6 @@ export const EventCard = memo(function EventCard({ e, done }) {
       </div>
       <div className="side">
         {done ? (e.peserta > 0 && <span className="muted">{e.peserta} peserta</span>) : <Bell id={'a:' + e.id} label={e.judul} />}
-        <Link to={`/acara/${e.id}`} className="btn sm ghost">{done ? 'Lihat laporan' : 'Detail'}</Link>
       </div>
     </li>
   )
